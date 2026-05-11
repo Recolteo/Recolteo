@@ -18,7 +18,7 @@ interface ButtonProps {
 export default function Button({
   label,
   href,
-  variant = "sapin",
+  variant
 }: ButtonProps) {
   const variantStyles =
     variant === "sapin"
