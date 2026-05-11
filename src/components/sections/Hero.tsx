@@ -20,9 +20,9 @@ export default function Hero({
   secondaryButton,
 }: HeroProps) {
   return (
-    <section className="bg-sapin px-4 sm:px-6 lg:px-8 py-14 sm:py-20 lg:py-28 rounded-b-3xl">
+    <section className="px-4 sm:px-6 lg:px-8 py-14 sm:py-20 lg:py-28">
       <div className="max-w-3xl mx-auto text-center">
-        <h1 className="text-cream font-black mb-6">
+        <h1 className="text-sapin font-black mb-6">
           {title}
           <br />
           {subtitle}{" "}
@@ -31,13 +31,13 @@ export default function Hero({
               className="absolute inset-0 bg-lime rounded-xl -rotate-1 scale-x-110"
               aria-hidden="true"
             />
-            <span className="relative text-sapin">{labelTitle}</span>
+            <span className="relative">{labelTitle}</span>
           </span>
           <br />
           <span className="italic text-peach">{spanTitle}</span> {endTitle}
         </h1>
 
-        <p className="text-cream max-w-xl mx-auto mb-10">{description}</p>
+        <p className="text-sapin max-w-xl mx-auto mb-10">{description}</p>
 
         <div className="flex items-center justify-center gap-4 flex-wrap">
           <button>{primaryButton}</button>
