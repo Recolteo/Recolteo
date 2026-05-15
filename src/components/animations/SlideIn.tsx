@@ -14,7 +14,7 @@ export default function SlideIn({
   delay = 0,
 }: SlideInProps) {
   return (
-    <div style={{ overflowX: "clip", paddingTop: "0.5rem", marginTop: "-0.5rem" }}>
+    <div style={{ overflowX: "clip", paddingTop: "0.5rem", marginTop: "-0.5rem", paddingRight: "6px", marginRight: "-6px", paddingBottom: "6px", marginBottom: "-6px" }}>
       <motion.div
         initial={{ opacity: 0, x: direction === "left" ? -72 : 72, y: 10 }}
         whileInView={{ opacity: 1, x: 0, y: 0 }}

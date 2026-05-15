@@ -41,7 +41,7 @@ export default function About() {
           </div>
 
           <Reveal delay={0.3}>
-            <div className="grid grid-cols-3 divide-x divide-sapin/10 border border-sapin rounded-2xl overflow-hidden">
+            <div className="grid grid-cols-3 divide-x divide-sapin/10 border border-sapin rounded-2xl shadow-[4px_4px_0_0_#06573F] overflow-hidden">
               {aboutStats.map((stat) => (
                 <div
                   key={stat.label}

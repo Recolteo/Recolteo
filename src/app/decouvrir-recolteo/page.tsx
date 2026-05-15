@@ -11,7 +11,7 @@ export default function DecouvrirRecolteo() {
         subtitle=""
         labelTitle="Récoltéo"
         spanTitle="objectifs,"
-        endTitle="tarifs et FAQ"
+        endTitle="usage et FAQ"
         description="Découvrez comment Récoltéo fonctionne, à quel prix, et trouvez les réponses à vos questions dans notre FAQ."
         primaryButton="Voir la démo"
         primaryButtonHref="#videodemo"
