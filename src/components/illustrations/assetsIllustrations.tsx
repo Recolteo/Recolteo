@@ -297,7 +297,7 @@ export function HowItWorksDecorations() {
       </motion.div>
 
       <motion.div
-        className="hidden lg:block absolute top-[52%] right-[9%] w-5 opacity-50"
+        className="hidden lg:block absolute top-[25%] right-[9%] w-5 opacity-50"
         initial={{ opacity: 0, scale: 0, x: 30 }}
         whileInView={{ opacity: 0.5, scale: 1, x: 0 }}
         viewport={{ once: true, amount: 0.2 }}

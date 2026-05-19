@@ -8,7 +8,7 @@ import {
 } from "@deemlol/next-icons";
 import StepItem from "./StepItem";
 import Btn from "./Button";
-import type { ProfileDef, IconName } from "../../lib/how-it-works";
+import type { ProfileDef, IconName } from "../../lib/data/how-it-works";
 import { ReactNode } from "react";
 
 const iconMap: Record<IconName, ReactNode> = {

@@ -3,14 +3,17 @@
 import { useState } from "react";
 import Reveal from "../animations/Reveal";
 import FaqItem from "../ui/FaqItem";
-import { faqItems } from "@/src/lib/faq";
+import { faqItems } from "@/src/lib/data/faq";
 import { FaqDecorations } from "../illustrations/assetsIllustrations";
 
 export default function Faq() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <section id="faq" className="relative px-4 sm:px-6 lg:px-8 py-20 sm:py-28 overflow-hidden">
+    <section
+      id="faq"
+      className="relative px-4 sm:px-6 lg:px-8 py-20 sm:py-28 overflow-hidden"
+    >
       <FaqDecorations />
       <div className="relative max-w-7xl mx-auto">
         <Reveal delay={0.15}>
@@ -20,7 +23,8 @@ export default function Faq() {
             </h2>
             <Reveal delay={0.3}>
               <p className="text-sapin max-w-md leading-relaxed">
-                Tout ce que vous devez savoir avant de vous lancer dans l'aventure avec nous.
+                Tout ce que vous devez savoir avant de vous lancer dans
+                l'aventure avec nous.
               </p>
             </Reveal>
           </div>

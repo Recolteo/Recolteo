@@ -2,8 +2,17 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ShoppingBag, Menu, X } from "@deemlol/next-icons";
+import { Menu, X, ShoppingCart } from "@deemlol/next-icons";
 import Btn from "../ui/Button";
+
+type UserInfo = {
+  nom: string;
+  role: "commercant" | "association" | "admin";
+};
+
+interface HeaderProps {
+  user?: UserInfo;
+}
 
 const navLinks = [
   { label: "Accueil", href: "/" },
@@ -12,8 +21,27 @@ const navLinks = [
   { label: "Contact", href: "/contact" },
 ];
 
-export default function Header() {
-  const [open, setOpen] = useState(false);
+function getInitials(nom: string): string {
+  const [prenom, famille] = nom.trim().split(/\s+/);
+  return (prenom[0] + famille[0]).toUpperCase();
+}
+
+function CartButton() {
+  return (
+    <button className="relative p-2 rounded-xl text-sapin hover:bg-sapin/10 transition-all">
+      <ShoppingCart size={20} />
+      <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-peach text-cream text-[9px] font-bold flex items-center justify-center leading-none">
+        0
+      </span>
+    </button>
+  );
+}
+
+export default function Header({ user }: HeaderProps) {
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const adminLink = { label: "Admin", href: "/admin" };
+  const links = user?.role === "admin" ? [...navLinks, adminLink] : navLinks;
 
   return (
     <div className="fixed top-3 left-0 right-0 z-50 px-4">
@@ -27,11 +55,11 @@ export default function Header() {
           </Link>
 
           <nav className="hidden md:flex items-center gap-0.5">
-            {navLinks.map(({ label, href }) => (
+            {links.map(({ label, href }) => (
               <Link
                 key={href}
                 href={href}
-                className="px-3.5 py-1.5 font-bold text-sapin hover:text-sapin hover:bg-sapin/10 rounded-xl transition-all duration-150"
+                className="px-3.5 py-1.5 font-bold text-sapin hover:bg-sapin/10 rounded-xl transition-all duration-150"
               >
                 {label}
               </Link>
@@ -39,54 +67,71 @@ export default function Header() {
           </nav>
 
           <div className="flex items-center gap-2 shrink-0">
-            <Link
-              href="/panier"
-              aria-label="Panier"
-              className="relative p-2 rounded-xl text-sapin hover:text-sapin hover:bg-sapin/10 transition-all duration-150"
-            >
-              <ShoppingBag size={20} />
-            </Link>
+            {user && <CartButton />}
 
-            <div className="hidden sm:block">
-              <Btn
-                label="Se connecter"
-                href="/login"
-                variant="sapin"
-                size="sm"
-                showArrow={false}
-              />
-            </div>
+            {user ? (
+              <Link
+                href="/profil"
+                className="hidden md:flex w-9 h-9 rounded-xl bg-sapin text-cream font-black text-sm items-center justify-center hover:bg-sapin/80 transition-all shadow-[3px_3px_0_0_#04251c]"
+                aria-label="Mon compte"
+              >
+                {getInitials(user.nom)}
+              </Link>
+            ) : (
+              <div className="hidden md:block">
+                <Btn
+                  label="Se connecter"
+                  href="/login"
+                  variant="sapin"
+                  size="sm"
+                  showArrow={false}
+                />
+              </div>
+            )}
 
             <button
-              onClick={() => setOpen((v) => !v)}
-              aria-label={open ? "Fermer le menu" : "Ouvrir le menu"}
-              className="md:hidden p-2 rounded-xl text-sapin hover:text-sapin hover:bg-sapin/10 transition-all duration-150"
+              onClick={() => setMenuOpen((v) => !v)}
+              aria-label={menuOpen ? "Fermer le menu" : "Ouvrir le menu"}
+              className="md:hidden p-2 rounded-xl text-sapin hover:bg-sapin/10 transition-all duration-150"
             >
-              {open ? <X size={20} /> : <Menu size={20} />}
+              {menuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
           </div>
         </div>
 
-        {open && (
+        {menuOpen && (
           <div className="md:hidden border-t-2 border-sapin/10 px-4 pb-4 pt-3 flex flex-col gap-1">
-            {navLinks.map(({ label, href }) => (
+            {links.map(({ label, href }) => (
               <Link
                 key={href}
                 href={href}
-                onClick={() => setOpen(false)}
-                className="px-3.5 py-2.5 text-sm font-bold text-sapin hover:text-sapin hover:bg-sapin/10 rounded-xl transition-all duration-150"
+                onClick={() => setMenuOpen(false)}
+                className="px-3.5 py-2.5 text-sm font-bold text-sapin hover:bg-sapin/10 rounded-xl transition-all duration-150"
               >
                 {label}
               </Link>
             ))}
             <div className="mt-2 pt-3 border-t border-sapin/10">
-              <Btn
-                label="Se connecter"
-                href="/login"
-                variant="sapin"
-                size="sm"
-                showArrow={false}
-              />
+              {user ? (
+                <Link
+                  href="/profil"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-sapin font-bold hover:bg-sapin/10 transition-all duration-150"
+                >
+                  <span className="w-7 h-7 rounded-lg bg-sapin text-cream font-black text-xs flex items-center justify-center shrink-0">
+                    {getInitials(user.nom)}
+                  </span>
+                  <span className="text-sm truncate">{user.nom}</span>
+                </Link>
+              ) : (
+                <Btn
+                  label="Se connecter"
+                  href="/login"
+                  variant="sapin"
+                  size="sm"
+                  showArrow={false}
+                />
+              )}
             </div>
           </div>
         )}
@@ -94,4 +139,3 @@ export default function Header() {
     </div>
   );
 }
-

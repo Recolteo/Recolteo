@@ -4,7 +4,11 @@ import Reveal from "../animations/Reveal";
 import SlideIn from "../animations/SlideIn";
 import CtaBanner from "../ui/CtaBanner";
 import ValueCard from "../ui/ValueCard";
-import { aboutStats, aboutValues, type AboutValueKey } from "@/src/lib/about";
+import {
+  aboutStats,
+  aboutValues,
+  type AboutValueKey,
+} from "@/src/lib/data/about";
 import { AboutDecorations } from "../illustrations/assetsIllustrations";
 
 const iconMap: Record<AboutValueKey, ReactNode> = {

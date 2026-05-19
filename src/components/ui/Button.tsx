@@ -13,18 +13,26 @@ type Size = "sm" | "md";
 
 interface ButtonProps {
   label: string;
-  href: string;
+  href?: string;
+  onClick?: () => void;
+  type?: "submit" | "button" | "reset";
   variant?: Variant;
   showArrow?: boolean;
   size?: Size;
+  disabled?: boolean;
+  className?: string;
 }
 
 export default function Button({
   label,
   href,
+  onClick,
+  type,
   variant,
   showArrow = true,
   size = "md",
+  disabled,
+  className = "",
 }: ButtonProps) {
   const variantStyles =
     variant === "sapin"
@@ -44,7 +52,8 @@ export default function Button({
       ? "px-4 py-2 text-sm rounded-lg gap-2"
       : "px-7 py-3.5 rounded-xl gap-3";
 
-  const className = `group inline-flex items-center font-semibold transition-all active:scale-95 ${sizeStyles} ${variantStyles}`;
+  const base = `group inline-flex items-center justify-center font-semibold transition-all active:scale-95 disabled:opacity-50 ${sizeStyles} ${variantStyles} ${className}`;
+
   const arrow = showArrow && (
     <ArrowRight
       size={size === "sm" ? 15 : 20}
@@ -52,16 +61,26 @@ export default function Button({
     />
   );
 
-  if (href.startsWith("#"))
+  if (onClick || type)
     return (
-      <a href={href} className={className}>
+      <button type={type ?? "button"} onClick={onClick} disabled={disabled} className={base}>
+        {label}
+        {arrow}
+      </button>
+    );
+
+  if (href?.startsWith("#"))
+    return (
+      <a href={href} className={base}>
         {label}
         {arrow}
       </a>
     );
 
+  if (!href) return null;
+
   return (
-    <Link href={href} className={className}>
+    <Link href={href} className={base}>
       {label}
       {arrow}
     </Link>

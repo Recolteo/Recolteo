@@ -7,7 +7,7 @@ import Reveal from "../animations/Reveal";
 import SlideIn from "../animations/SlideIn";
 import TabToggle from "../ui/TabToggle";
 import VideoPlayer from "../ui/VideoPlayer";
-import { demos, tabs, type UserType } from "@/src/lib/videoDemo";
+import { demos, tabs, type UserType } from "@/src/lib/data/videoDemo";
 import { VideoDemoDecorations } from "../illustrations/assetsIllustrations";
 
 export default function VideoDemo() {
@@ -15,7 +15,10 @@ export default function VideoDemo() {
   const demo = demos[active];
 
   return (
-    <section id="videodemo" className="relative px-4 sm:px-6 lg:px-8 py-20 sm:py-28 overflow-hidden">
+    <section
+      id="videodemo"
+      className="relative px-4 sm:px-6 lg:px-8 py-20 sm:py-28 overflow-hidden"
+    >
       <VideoDemoDecorations />
       <div className="relative max-w-7xl mx-auto flex flex-col gap-10">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">

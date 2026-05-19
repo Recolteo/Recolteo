@@ -1,6 +1,6 @@
 import Reveal from "../animations/Reveal";
 import ProfileCard from "../ui/ProfileCard";
-import { profiles } from "../../lib/how-it-works";
+import { profiles } from "../../lib/data/how-it-works";
 import { HowItWorksDecorations } from "../illustrations/assetsIllustrations";
 
 export default function HowItWorks() {

@@ -3,7 +3,7 @@
 import Button from "../ui/Button";
 import Reveal from "../animations/Reveal";
 import DraggablePill from "../animations/DraggablePill";
-import { categoryRows } from "../../lib/categories";
+import { categoryRows } from "../../lib/data/categories";
 import { CategoriesDecorations } from "../illustrations/assetsIllustrations";
 
 const pills = categoryRows.flat();

@@ -1,6 +1,6 @@
-import Hero from "../components/sections/Hero";
-import Categories from "../components/sections/Categories";
-import HowItWorks from "../components/sections/HowItWorks";
+import Hero from "@/src/components/sections/Hero";
+import Categories from "@/src/components/sections/Categories";
+import HowItWorks from "@/src/components/sections/HowItWorks";
 
 export default function Home() {
   return (
