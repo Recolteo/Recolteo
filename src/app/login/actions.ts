@@ -122,7 +122,6 @@ export async function signUp(
     // Ne pas bloquer l'inscription si l'email échoue
   }
 
-  // Connecte automatiquement le nouvel utilisateur
   const supabase = await createClient();
   await supabase.auth.signInWithPassword({ email, password });
 
@@ -132,5 +131,46 @@ export async function signUp(
 export async function signOut() {
   const supabase = await createClient();
   await supabase.auth.signOut();
+  redirect("/login");
+}
+
+export async function deleteAccount() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const admin = createAdminClient();
+
+  const { data: adminRow } = await supabase
+    .from("administrateur")
+    .select("id_admin")
+    .maybeSingle();
+
+  if (adminRow) {
+    await admin.from("administrateur").delete().eq("id_admin", adminRow.id_admin);
+  } else {
+    const { data: userRow } = await admin
+      .from("user")
+      .select("id_user")
+      .eq("auth_id", user.id)
+      .maybeSingle();
+
+    if (userRow) {
+      await admin.from("commercant").delete().eq("id_user", userRow.id_user);
+      await admin.from("association").delete().eq("id_user", userRow.id_user);
+      await admin.from("user").delete().eq("id_user", userRow.id_user);
+    }
+
+    const { data: files } = await admin.storage.from("user-documents").list(user.id);
+    if (files?.length) {
+      await admin.storage
+        .from("user-documents")
+        .remove(files.map((f) => `${user.id}/${f.name}`));
+    }
+  }
+
+  await admin.auth.admin.deleteUser(user.id);
   redirect("/login");
 }

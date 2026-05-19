@@ -34,40 +34,20 @@ export default async function RootLayout({
   let userInfo: { nom: string; role: "commercant" | "association" | "admin" } | undefined;
 
   if (user) {
-    const { data: adminRow } = await supabase
-      .from("administrateur")
-      .select("nom, prenom")
-      .maybeSingle();
+    const [{ data: adminRow }, { data: commercant }, { data: association }, { data: userRow }] =
+      await Promise.all([
+        supabase.from("administrateur").select("nom, prenom").maybeSingle(),
+        supabase.from("commercant").select("name_entreprise").maybeSingle(),
+        supabase.from("association").select("name_entreprise").maybeSingle(),
+        supabase.from("user").select("nom").maybeSingle(),
+      ]);
 
     if (adminRow) {
       userInfo = { nom: `${adminRow.prenom} ${adminRow.nom}`, role: "admin" };
-    } else {
-      const { data: commercant } = await supabase
-        .from("commercant")
-        .select("name_entreprise")
-        .maybeSingle();
-
-      const { data: association } = await supabase
-        .from("association")
-        .select("name_entreprise")
-        .maybeSingle();
-
-      const { data: userRow } = await supabase
-        .from("user")
-        .select("nom")
-        .maybeSingle();
-
-      if (commercant) {
-        userInfo = {
-          nom: userRow?.nom ?? commercant.name_entreprise,
-          role: "commercant",
-        };
-      } else if (association) {
-        userInfo = {
-          nom: userRow?.nom ?? association.name_entreprise,
-          role: "association",
-        };
-      }
+    } else if (commercant) {
+      userInfo = { nom: userRow?.nom ?? commercant.name_entreprise, role: "commercant" };
+    } else if (association) {
+      userInfo = { nom: userRow?.nom ?? association.name_entreprise, role: "association" };
     }
   }
 
