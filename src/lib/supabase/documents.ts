@@ -5,12 +5,6 @@ import { createClient } from "./server";
 import { createAdminClient } from "./admin";
 import { BUCKET, type DocType, type UserDocEntry } from "./documents-types";
 
-const DB_COL_TO_TYPE: Record<"rib" | "kbis" | "piece_identite", DocType> = {
-  rib: "rib",
-  kbis: "kbis",
-  piece_identite: "identite",
-};
-
 export async function getAdminAllDocuments(): Promise<UserDocEntry[]> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
