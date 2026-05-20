@@ -1,4 +1,4 @@
-﻿import Reveal from "@/src/components/animations/Reveal";
+import Reveal from "@/src/components/animations/Reveal";
 
 export default function MentionsLegales() {
   return (
@@ -13,20 +13,20 @@ export default function MentionsLegales() {
       <section className="mb-8">
         <h2 className="text-xl sm:text-2xl font-bold text-sapin mb-4">1. Éditeur</h2>
         <ul className="space-y-1">
-          <li><span className="font-medium">Société :</span> Récoltéo</li>
-          <li><span className="font-medium">Capital :</span> –</li>
-          <li><span className="font-medium">Siège social :</span> 6 rue du Bac, 38190 Villard Bonnot</li>
-          <li><span className="font-medium">SIRET :</span> 882 691 405 00063</li>
-          <li><span className="font-medium">Numéro de TVA :</span> FR 280 56 50 29 58</li>
-          <li><span className="font-medium">Téléphone :</span> 06 50 00 53 42</li>
-          <li>
-            <span className="font-medium">Mail :</span>{" "}
+          <li className="mb-3">Société : Récoltéo</li>
+          <li className="mb-3">Capital : –</li>
+          <li className="mb-3">Siège social : 6 rue du Bac, 38190 Villard Bonnot</li>
+          <li className="mb-3">SIRET : 882 691 405 00063</li>
+          <li className="mb-3">Numéro de TVA : FR 280 56 50 29 58</li>
+          <li className="mb-3">Téléphone : 06 50 00 53 42</li>
+          <li
+            className="mb-3">Mail : {" "}
             <a href="mailto:digitalbylucie@gmail.com" className="underline hover:text-sapin">
               digitalbylucie@gmail.com
             </a>
           </li>
-          <li><span className="font-medium">Directeur de publication :</span> Lucie Curtatone</li>
-          <li><span className="font-medium">Co-gérants :</span> Isabelle Colombera, Florian Cipriani, Kérian Boukaala</li>
+          <li className="mb-3">Directeur de publication : Lucie Curtatone</li>
+          <li className="mb-3">Co-gérants : Isabelle Colombera, Florian Cipriani, Kérian Boukaala</li>
         </ul>
       </section>
       </Reveal>
@@ -75,7 +75,7 @@ export default function MentionsLegales() {
           Certaines ressources peuvent provenir de plateformes telles que Unsplash, Pexels ou autres
           banques d'images libres, utilisées conformément à leurs conditions de licence.
         </p>
-        <p>Les auteurs des images restent propriétaires de leurs œuvres respectives.</p>
+        <p className="mb-3">Les auteurs des images restent propriétaires de leurs œuvres respectives.</p>
       </section>
       </Reveal>
 
@@ -87,12 +87,12 @@ export default function MentionsLegales() {
           jour des informations fournies. Il ne peut garantir que ces informations soient complètes,
           précises, exactes ou dépourvues d'erreurs.
         </p>
-        <p className="mb-2">Récoltéo ne peut garantir :</p>
+        <p className="mb-3">Récoltéo ne peut garantir :</p>
         <ul className="list-disc list-inside space-y-1 mb-3">
-          <li>des interruptions temporaires pour maintenance ou mise à jour ;</li>
-          <li>des dysfonctionnements techniques, bugs ou incompatibilités ;</li>
-          <li>des dommages directs ou indirects résultant de l'utilisation du site ;</li>
-          <li>des contenus de sites tiers accessibles via des liens hypertextes.</li>
+          <li className="mb-3">des interruptions temporaires pour maintenance ou mise à jour ;</li>
+          <li className="mb-3">des dysfonctionnements techniques, bugs ou incompatibilités ;</li>
+          <li className="mb-3">des dommages directs ou indirects résultant de l'utilisation du site ;</li>
+          <li className="mb-3">des contenus de sites tiers accessibles via des liens hypertextes.</li>
         </ul>
         <p>
           L'utilisateur reconnaît utiliser le site sous sa responsabilité exclusive et s'engage à
@@ -122,15 +122,15 @@ export default function MentionsLegales() {
           la Protection des Données (RGPD). En cas de litige, les parties s'efforceront de rechercher
           une solution amiable avant toute action judiciaire.
         </p>
-        <p className="mb-2">
+        <p className="mb-3">
           Les présentes dispositions s'appliquent dans le respect des droits accordés par :
         </p>
         <ul className="list-disc list-inside space-y-1">
-          <li>le Code civil ;</li>
-          <li>le Code de la consommation ;</li>
-          <li>le Code de la propriété intellectuelle ;</li>
-          <li>le Règlement Général sur la Protection des Données (RGPD) ;</li>
-          <li>la loi n°78-17 du 6 janvier 1978 relative à l'informatique, aux fichiers et aux libertés.</li>
+          <li className="mb-3">le Code civil ;</li>
+          <li className="mb-3">le Code de la consommation ;</li>
+          <li className="mb-3">le Code de la propriété intellectuelle ;</li>
+          <li className="mb-3">le Règlement Général sur la Protection des Données (RGPD) ;</li>
+          <li className="mb-3">la loi n°78-17 du 6 janvier 1978 relative à l'informatique, aux fichiers et aux libertés.</li>
         </ul>
       </section>
       </Reveal>
@@ -138,17 +138,17 @@ export default function MentionsLegales() {
       <Reveal delay={1.0}>
       <section className="mb-8">
         <h2 className="text-xl sm:text-2xl font-bold text-sapin mb-4">8. Activités interdites sur le site</h2>
-        <p className="mb-2">En tant qu'utilisateur, vous acceptez de ne pas :</p>
+        <p className="mb-3">En tant qu'utilisateur, vous acceptez de ne pas :</p>
         <ul className="list-disc list-inside space-y-1">
-          <li>Extraire systématiquement des données sans autorisation écrite ;</li>
-          <li>Faire une utilisation non autorisée de la plateforme ;</li>
-          <li>Utiliser la plateforme pour faire de la publicité ou proposer des biens/services ;</li>
-          <li>Contourner les fonctions de sécurité du site ;</li>
-          <li>Tromper, frauder ou induire en erreur Récoltéo et les autres utilisateurs ;</li>
-          <li>Tenter d'usurper l'identité d'un autre utilisateur ;</li>
-          <li>Décompiler ou faire de l'ingénierie inverse sur les logiciels de la plateforme ;</li>
-          <li>Télécharger ou transmettre des virus ou autres éléments malveillants ;</li>
-          <li>Utiliser la plateforme d'une manière incompatible avec les lois applicables.</li>
+          <li className="mb-3">Extraire systématiquement des données sans autorisation écrite ;</li>
+          <li className="mb-3">Faire une utilisation non autorisée de la plateforme ;</li>
+          <li className="mb-3">Utiliser la plateforme pour faire de la publicité ou proposer des biens/services ;</li>
+          <li className="mb-3">Contourner les fonctions de sécurité du site ;</li>
+          <li className="mb-3">Tromper, frauder ou induire en erreur Récoltéo et les autres utilisateurs ;</li>
+          <li className="mb-3">Tenter d'usurper l'identité d'un autre utilisateur ;</li>
+          <li className="mb-3">Décompiler ou faire de l'ingénierie inverse sur les logiciels de la plateforme ;</li>
+          <li className="mb-3">Télécharger ou transmettre des virus ou autres éléments malveillants ;</li>
+          <li className="mb-3">Utiliser la plateforme d'une manière incompatible avec les lois applicables.</li>
         </ul>
       </section>
       </Reveal>
@@ -169,7 +169,7 @@ export default function MentionsLegales() {
             digitalbylucie@gmail.com
           </a>.
         </p>
-        <p>
+        <p className="mb-3">
           Il est de votre seule responsabilité de garder confidentiels vos identifiants et mots de passe.
           Toute utilisation de votre compte au moyen de vos identifiants est présumée avoir été effectuée
           par vous-même.
@@ -179,4 +179,3 @@ export default function MentionsLegales() {
     </div>
   );
 }
-

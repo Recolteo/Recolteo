@@ -1,26 +1,25 @@
 "use client";
-
+ 
 import { useState } from "react";
 import Link from "next/link";
 import { Menu, X, ShoppingCart } from "@deemlol/next-icons";
 import Btn from "../ui/Button";
-
+ 
 type UserInfo = {
   nom: string;
   role: "commercant" | "association" | "admin";
 };
-
+ 
 interface HeaderProps {
   user?: UserInfo;
 }
-
+ 
 const navLinks = [
   { label: "Accueil", href: "/" },
   { label: "Découvrir Récoltéo", href: "/decouvrir-recolteo" },
   { label: "Dashboard", href: "/dashboard" },
   { label: "Contact", href: "/contact" },
 ];
-
 
 function CartButton() {
   return (
@@ -32,13 +31,13 @@ function CartButton() {
     </button>
   );
 }
-
+ 
 export default function Header({ user }: HeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
-
+ 
   const adminLink = { label: "Admin", href: "/admin" };
   const links = user?.role === "admin" ? [...navLinks, adminLink] : navLinks;
-
+ 
   return (
     <div className="fixed top-3 left-0 right-0 z-50 px-4">
       <header className="max-w-7xl mx-auto bg-cream/90 backdrop-blur-sm border-2 border-sapin/10 rounded-2xl shadow-sm overflow-hidden">
@@ -49,7 +48,7 @@ export default function Header({ user }: HeaderProps) {
           >
             Récoltéo
           </Link>
-
+ 
           <nav className="hidden md:flex items-center gap-0.5">
             {links.map(({ label, href }) => (
               <Link
@@ -61,10 +60,10 @@ export default function Header({ user }: HeaderProps) {
               </Link>
             ))}
           </nav>
-
+ 
           <div className="flex items-center gap-2 shrink-0">
             {user && <CartButton />}
-
+ 
             {user ? (
               <Link
                 href="/profil"
@@ -84,7 +83,7 @@ export default function Header({ user }: HeaderProps) {
                 />
               </div>
             )}
-
+ 
             <button
               onClick={() => setMenuOpen((v) => !v)}
               aria-label={menuOpen ? "Fermer le menu" : "Ouvrir le menu"}
@@ -94,7 +93,7 @@ export default function Header({ user }: HeaderProps) {
             </button>
           </div>
         </div>
-
+ 
         {menuOpen && (
           <div className="md:hidden border-t-2 border-sapin/10 px-4 pb-4 pt-3 flex flex-col gap-1">
             {links.map(({ label, href }) => (

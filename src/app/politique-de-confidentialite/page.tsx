@@ -13,13 +13,18 @@ export default function PolitiqueDeConfidentialite() {
 
       <Reveal delay={0.75}>
       <section className="mb-8">
-        <h2 className="text-xl sm:text-2xl font-bold text-sapin mb-4">1. Respon  sable du traitement</h2>
+        <h2 className="text-xl sm:text-2xl font-bold text-sapin mb-4">1. Responsable du traitement</h2>
         <ul>
           <li className="mb-3">Le responsable du traitement des données est :</li>
           <li className="mb-3">Récoltéo</li>
           <li className="mb-3">Responsable : Lucie Curtatone</li>
           <li className="mb-3">Adresse : 6 rue du Bac, 38190 Villard Bonnot</li>
-          <li className="mb-3">Email : digitalbylucie@gmail.com</li>
+          <li
+            className="mb-3">Mail : {" "}
+            <a href="mailto:digitalbylucie@gmail.com" className="underline hover:text-sapin">
+              digitalbylucie@gmail.com
+            </a>
+          </li>
           <li className="mb-3">Plateforme : Récoltéo</li>
         </ul>
       </section>
@@ -46,39 +51,39 @@ export default function PolitiqueDeConfidentialite() {
         <p className="mb-3">Dans le cadre de l’utilisation de la plateforme, Récoltéo peut collecter les données suivantes :</p>
         <div>
           <div>
-            <p>Données d’identification</p>
+            <p className="mb-3">Données d’identification</p>
             <ul>
-              <li>Nom</li>
-              <li>Prénom</li>
-              <li>Adresse email</li>
-              <li>Adresse postale</li>
+              <li className="mb-3">Nom</li>
+              <li className="mb-3">Prénom</li>
+              <li className="mb-3">Adresse email</li>
+              <li className="mb-3">Adresse postale</li>
             </ul>
           </div>
 
           <div>
-            <p>Données professionnelles</p>
+            <p className="mb-3">Données professionnelles</p>
             <ul>
-              <li>Nom de l’entreprise</li>
-              <li>Numéro SIRET</li>
-              <li>Informations relatives à l’activité professionnelle</li>
+              <li className="mb-3">Nom de l’entreprise</li>
+              <li className="mb-3">Numéro SIRET</li>
+              <li className="mb-3">Informations relatives à l’activité professionnelle</li>
             </ul>
           </div>
 
           <div>
-            <p>Données de compte</p>
+            <p className="mb-3">Données de compte</p>
             <ul>
-              <li>Identifiants de connexion</li>
-              <li>Informations de profil utilisateur</li>
-              <li>Historique des interactions sur la plateforme</li>
+              <li className="mb-3">Identifiants de connexion</li>
+              <li className="mb-3">Informations de profil utilisateur</li>
+              <li className="mb-3">Historique des interactions sur la plateforme</li>
             </ul>
           </div>
 
           <div>
-            <p>Données techniques</p>
+            <p className="mb-3">Données techniques</p>
             <ul>
-              <li>Adresse IP</li>
-              <li>Données de connexion</li>
-              <li>Cookies techniques nécessaires au fonctionnement du site</li>
+              <li className="mb-3">Adresse IP</li>
+              <li className="mb-3">Données de connexion</li>
+              <li className="mb-3">Cookies techniques nécessaires au fonctionnement du site</li>
             </ul>
           </div>
         </div>
@@ -129,8 +134,8 @@ export default function PolitiqueDeConfidentialite() {
       <Reveal delay={1.0}>
       <section className="mb-8">
         <h2 className="text-xl sm:text-2xl font-bold text-sapin mb-4">9. Durée de conservation des données</h2>
-        <p className="mb-3">Les données personnelles sont conservées uniquement pendant la durée nécessaire aux finalités pour lesquelles elles ont été collectées. À titre indicatif :</p>
         <ul>
+          <li className="mb-3">Les données personnelles sont conservées uniquement pendant la durée nécessaire aux finalités pour lesquelles elles ont été collectées. À titre indicatif :</li>
           <li className="mb-3">les données de compte sont conservées pendant la durée d’activité du compte ;</li>
           <li className="mb-3">certaines données peuvent être conservées plus longtemps afin de respecter des obligations légales ou fiscales ;</li>
           <li className="mb-3">les données peuvent être supprimées à la demande de l’utilisateur, sous réserve des obligations légales applicables.</li>
