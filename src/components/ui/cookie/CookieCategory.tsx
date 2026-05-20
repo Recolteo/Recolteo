@@ -1,4 +1,4 @@
-import Toggle from "@/src/components/ui/Toggle";
+import Toggle from "@/src/components/ui/primitives/Toggle";
 
 interface CookieCategoryProps {
   label: string;

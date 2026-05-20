@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Reveal from "../animations/Reveal";
-import FaqItem from "../ui/FaqItem";
+import FaqItem from "../ui/sections/FaqItem";
 import { faqItems } from "@/src/lib/data/faq";
 import { FaqDecorations } from "../illustrations/assetsIllustrations";
 

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Menu, X, ShoppingCart } from "@deemlol/next-icons";
-import Btn from "../ui/Button";
+import Btn from "../ui/primitives/Button";
 
 type UserInfo = {
   nom: string;

@@ -1,10 +1,9 @@
-import Btn from "../components/ui/Button";
+import Btn from "../components/ui/primitives/Button";
 import Reveal from "../components/animations/Reveal";
 
 export default function NotFound() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-3 px-4 text-center">
-
       <Reveal delay={0}>
         <h1 className="text-sapin font-black leading-none tracking-tighter">
           404
@@ -17,7 +16,8 @@ export default function NotFound() {
 
       <Reveal delay={0.3}>
         <p className="text-sapin/50 max-w-xs">
-          Cette page n'existe pas. On ne sait pas non plus comment vous avez atterri ici.
+          Cette page n'existe pas. On ne sait pas non plus comment vous avez
+          atterri ici.
         </p>
       </Reveal>
 
@@ -29,10 +29,15 @@ export default function NotFound() {
 
       <Reveal delay={0.6}>
         <div className="mt-2">
-          <Btn label="Retour à l'accueil" href="/" variant="sapin" size="md" showArrow={true} />
+          <Btn
+            label="Retour à l'accueil"
+            href="/"
+            variant="sapin"
+            size="md"
+            showArrow={true}
+          />
         </div>
       </Reveal>
-
     </div>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
-import Button from "@/src/components/ui/Button";
+import Button from "@/src/components/ui/primitives/Button";
 
 interface CookieBannerProps {
   onAcceptAll: () => void;
@@ -22,7 +22,9 @@ export default function CookieBanner({
     >
       <div className="max-w-5xl mx-auto bg-cream/90 backdrop-blur-sm border-2 border-sapin/10 rounded-2xl shadow-sm px-6 py-4 flex flex-col sm:flex-row sm:items-center gap-4">
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-sm mb-1 text-sapin">Nous utilisons des cookies</p>
+          <p className="font-semibold text-sm mb-1 text-sapin">
+            Nous utilisons des cookies
+          </p>
           <p className="text-sapin/60 text-xs leading-relaxed">
             Récoltéo utilise des cookies pour le bon fonctionnement du site et,
             avec votre accord, pour analyser l'audience. Aucun cookie

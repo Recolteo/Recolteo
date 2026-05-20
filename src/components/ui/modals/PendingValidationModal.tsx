@@ -2,7 +2,7 @@
 
 import { useTransition } from "react";
 import { Clock, Mail } from "@deemlol/next-icons";
-import Button from "@/src/components/ui/Button";
+import Button from "@/src/components/ui/primitives/Button";
 import { signOut } from "@/src/app/login/actions";
 
 export default function PendingValidationModal() {

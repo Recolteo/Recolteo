@@ -2,7 +2,7 @@
 
 import { motion } from "motion/react";
 import { X } from "@deemlol/next-icons";
-import Button from "@/src/components/ui/Button";
+import Button from "@/src/components/ui/primitives/Button";
 import CookieCategory from "@/src/components/ui/cookie/CookieCategory";
 import type { CookieConsent } from "@/src/lib/cookie-consent";
 
@@ -39,7 +39,9 @@ export default function CookiePanel({
       >
         <div className="bg-cream rounded-2xl w-full max-w-md shadow-2xl border border-sapin/10">
           <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-sapin/10">
-            <h2 className="font-black text-sapin text-lg">Gestion des cookies</h2>
+            <h2 className="font-black text-sapin text-lg">
+              Gestion des cookies
+            </h2>
             <button
               onClick={onClose}
               aria-label="Fermer"

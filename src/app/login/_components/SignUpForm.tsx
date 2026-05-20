@@ -2,9 +2,9 @@
 
 import { Fragment, useActionState, useState } from "react";
 import { signUp, type ActionState } from "../actions";
-import Input from "@/src/components/ui/Input";
-import Button from "@/src/components/ui/Button";
-import TabToggle from "@/src/components/ui/TabToggle";
+import Input from "@/src/components/ui/primitives/Input";
+import Button from "@/src/components/ui/primitives/Button";
+import TabToggle from "@/src/components/ui/primitives/TabToggle";
 
 type Role = "commercant" | "association";
 

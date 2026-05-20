@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
-import CookieManager from "../components/ui/CookieManager";
+import CookieManager from "../components/ui/cookie/CookieManager";
 import { createClient } from "@/src/lib/supabase/server";
 
 const geistSans = Geist({

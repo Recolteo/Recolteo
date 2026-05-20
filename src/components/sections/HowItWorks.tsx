@@ -1,5 +1,5 @@
 import Reveal from "../animations/Reveal";
-import ProfileCard from "../ui/ProfileCard";
+import ProfileCard from "../ui/cards/ProfileCard";
 import { profiles } from "../../lib/data/how-it-works";
 import { HowItWorksDecorations } from "../illustrations/assetsIllustrations";
 
