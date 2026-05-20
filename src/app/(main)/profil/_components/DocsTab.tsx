@@ -5,7 +5,7 @@ import { FileText, Check, Shield } from "@deemlol/next-icons";
 import { createClient } from "@/src/lib/supabase/client";
 import { getAdminAllDocuments } from "@/src/lib/supabase/documents";
 import { BUCKET, DOC_LABELS, type DocType, type UserDocEntry } from "@/src/lib/supabase/documents-types";
-import { DownloadAction, DeleteAction, UploadAction } from "@/src/components/ui/DocAction";
+import { DownloadAction, DeleteAction, UploadAction } from "@/src/components/ui/docs/DocAction";
 import { syncDocUpload, syncDocDelete } from "@/src/app/(main)/profil/doc-actions";
 
 const DOC_TYPES: DocType[] = ["rib", "kbis", "identite"];

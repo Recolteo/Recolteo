@@ -2,8 +2,8 @@
 
 import { useActionState } from "react";
 import { signIn, type ActionState } from "../actions";
-import Input from "@/src/components/ui/Input";
-import Button from "@/src/components/ui/Button";
+import Input from "@/src/components/ui/primitives/Input";
+import Button from "@/src/components/ui/primitives/Button";
 
 export default function SignInForm() {
   const [state, action, pending] = useActionState(signIn, {} as ActionState);

@@ -1,5 +1,9 @@
-import Button from "./Button";
-import { Star, CircleDecor, LeafFull } from "../illustrations/assetsIllustrations";
+import Button from "../primitives/Button";
+import {
+  Star,
+  CircleDecor,
+  LeafFull,
+} from "../../illustrations/assetsIllustrations";
 
 interface CtaBannerProps {
   heading: string;
@@ -16,8 +20,10 @@ export default function CtaBanner({
 }: CtaBannerProps) {
   return (
     <div className="relative bg-sapin border border-sapin rounded-2xl shadow-[4px_4px_0_0_#04251c] px-8 py-12 sm:px-14 flex flex-col sm:flex-row items-center justify-between gap-6 overflow-hidden">
-
-      <div className="absolute inset-0 pointer-events-none select-none" aria-hidden="true">
+      <div
+        className="absolute inset-0 pointer-events-none select-none"
+        aria-hidden="true"
+      >
         <div className="absolute top-3 left-5 w-4 sm:w-5">
           <Star color="#c9f242" />
         </div>

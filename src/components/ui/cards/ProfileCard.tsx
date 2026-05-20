@@ -6,9 +6,9 @@ import {
   Send,
   CheckCircle,
 } from "@deemlol/next-icons";
-import StepItem from "./StepItem";
-import Btn from "./Button";
-import type { ProfileDef, IconName } from "../../lib/data/how-it-works";
+import StepItem from "../sections/StepItem";
+import Btn from "../primitives/Button";
+import type { ProfileDef, IconName } from "../../../lib/data/how-it-works";
 import { ReactNode } from "react";
 
 const iconMap: Record<IconName, ReactNode> = {

@@ -6,9 +6,9 @@ import {
   type ContactState,
 } from "@/src/app/(public)/contact/actions";
 import { Check } from "@deemlol/next-icons";
-import Input from "@/src/components/ui/Input";
-import Select from "@/src/components/ui/Select";
-import Button from "@/src/components/ui/Button";
+import Input from "@/src/components/ui/primitives/Input";
+import Select from "@/src/components/ui/primitives/Select";
+import Button from "@/src/components/ui/primitives/Button";
 import Reveal from "@/src/components/animations/Reveal";
 
 export default function ContactForm() {

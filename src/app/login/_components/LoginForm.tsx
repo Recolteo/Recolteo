@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import TabToggle from "@/src/components/ui/TabToggle";
+import TabToggle from "@/src/components/ui/primitives/TabToggle";
 import SignInForm from "./SignInForm";
 import SignUpForm from "./SignUpForm";
 

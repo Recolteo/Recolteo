@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Btn from "../ui/Button";
+import Btn from "../ui/primitives/Button";
 import Image from "next/image";
 import footerIllustration from "@/src/asset/footer.svg";
 
@@ -22,7 +22,10 @@ const legalLinks = [
 export default function Footer() {
   return (
     <footer className=" text-cream mt-auto">
-      <div className="relative w-full h-16 pointer-events-none select-none" inert>
+      <div
+        className="relative w-full h-16 pointer-events-none select-none"
+        inert
+      >
         <Image
           src={footerIllustration}
           alt=""

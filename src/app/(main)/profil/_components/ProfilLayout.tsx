@@ -3,9 +3,9 @@
 import { useState, useTransition } from "react";
 import { Clock, UserX, Shield } from "@deemlol/next-icons";
 import { signOut } from "@/src/app/login/actions";
-import Button from "@/src/components/ui/Button";
-import TabToggle from "@/src/components/ui/TabToggle";
-import ValueCard from "@/src/components/ui/ValueCard";
+import Button from "@/src/components/ui/primitives/Button";
+import TabToggle from "@/src/components/ui/primitives/TabToggle";
+import ValueCard from "@/src/components/ui/cards/ValueCard";
 import Reveal from "@/src/components/animations/Reveal";
 import ProfilHeader from "./ProfilHeader";
 import InfoTab, { type EntityInfo } from "./InfoTab";
@@ -21,9 +21,12 @@ const TABS = [
 ];
 
 const ROLE_SUBTITLE: Record<"commercant" | "association" | "admin", string> = {
-  admin: "Gérez les membres, validez les documents et administrez la plateforme Récoltéo.",
-  commercant: "Gérez vos informations, déposez vos justificatifs et suivez votre activité.",
-  association: "Gérez vos informations, déposez vos justificatifs et développez vos partenariats.",
+  admin:
+    "Gérez les membres, validez les documents et administrez la plateforme Récoltéo.",
+  commercant:
+    "Gérez vos informations, déposez vos justificatifs et suivez votre activité.",
+  association:
+    "Gérez vos informations, déposez vos justificatifs et développez vos partenariats.",
 };
 
 interface ProfilLayoutProps {
@@ -33,8 +36,12 @@ interface ProfilLayoutProps {
   entityInfo: EntityInfo | null;
 }
 
-
-export default function ProfilLayout({ nom, role, authId, entityInfo }: ProfilLayoutProps) {
+export default function ProfilLayout({
+  nom,
+  role,
+  authId,
+  entityInfo,
+}: ProfilLayoutProps) {
   const [tab, setTab] = useState<Tab>("info");
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [isPendingSignOut, startSignOut] = useTransition();
@@ -51,7 +58,12 @@ export default function ProfilLayout({ nom, role, authId, entityInfo }: ProfilLa
 
       <Reveal delay={0.16}>
         <div className="flex flex-col gap-5">
-          <TabToggle tabs={TABS} active={tab} onChange={(v) => setTab(v as Tab)} fullWidth />
+          <TabToggle
+            tabs={TABS}
+            active={tab}
+            onChange={(v) => setTab(v as Tab)}
+            fullWidth
+          />
           <div className="min-h-[300px]">
             {tab === "info" && <InfoTab entityInfo={entityInfo} />}
             {tab === "docs" && <DocsTab role={role} authId={authId} />}
@@ -63,7 +75,8 @@ export default function ProfilLayout({ nom, role, authId, entityInfo }: ProfilLa
                 <div>
                   <p className="font-bold text-sapin/60">Bientôt disponible</p>
                   <p className="text-sapin/40 mt-1 max-w-xs">
-                    L'historique de vos activités sera disponible dans une prochaine version.
+                    L'historique de vos activités sera disponible dans une
+                    prochaine version.
                   </p>
                 </div>
               </div>
@@ -100,7 +113,10 @@ export default function ProfilLayout({ nom, role, authId, entityInfo }: ProfilLa
         </div>
       </Reveal>
 
-      <DeleteConfirmModal isOpen={deleteModalOpen} onClose={() => setDeleteModalOpen(false)} />
+      <DeleteConfirmModal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+      />
     </div>
   );
 }

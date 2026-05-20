@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { AlertTriangle, X } from "@deemlol/next-icons";
 import { deleteAccount } from "@/src/app/login/actions";
-import Button from "@/src/components/ui/Button";
+import Button from "@/src/components/ui/primitives/Button";
 
 const CONFIRM_WORD = "SUPPRIMER";
 
@@ -16,20 +16,26 @@ function ModalContent({ onClose }: { onClose: () => void }) {
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = ""; };
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, []);
 
   return (
     <>
       <motion.div
         className="fixed inset-0 z-200 bg-cream/40 backdrop-blur-sm"
-        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
         transition={{ duration: 0.2 }}
         onClick={onClose}
       />
       <motion.div
         className="fixed inset-0 z-201 flex items-end sm:items-center justify-center sm:p-4 pointer-events-none"
-        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
       >
         <motion.div
           className="pointer-events-auto w-full sm:max-w-md bg-cream rounded-t-3xl sm:rounded-3xl border-2 border-sapin/10 shadow-[6px_6px_0_0_#04251c] overflow-hidden"
@@ -57,9 +63,13 @@ function ModalContent({ onClose }: { onClose: () => void }) {
             <div className="bg-peach/8 border border-peach/20 rounded-2xl p-4 flex gap-3">
               <AlertTriangle size={16} className="text-peach shrink-0 mt-0.5" />
               <div className="flex flex-col gap-1">
-                <span className="block font-black text-sapin">Cette action est irréversible.</span>
+                <span className="block font-black text-sapin">
+                  Cette action est irréversible.
+                </span>
                 <span className="block text-sapin/65 leading-snug">
-                  Votre compte, toutes vos données et vos documents seront définitivement supprimés. Il n&apos;est pas possible de récupérer ces informations.
+                  Votre compte, toutes vos données et vos documents seront
+                  définitivement supprimés. Il n&apos;est pas possible de
+                  récupérer ces informations.
                 </span>
               </div>
             </div>
@@ -67,8 +77,10 @@ function ModalContent({ onClose }: { onClose: () => void }) {
             <div className="flex flex-col gap-2.5">
               <label className="font-bold text-sapin">
                 Tapez{" "}
-                <span className="font-black text-peach tracking-widest">{CONFIRM_WORD}</span>
-                {" "}pour confirmer
+                <span className="font-black text-peach tracking-widest">
+                  {CONFIRM_WORD}
+                </span>{" "}
+                pour confirmer
               </label>
               <input
                 type="text"
@@ -76,13 +88,21 @@ function ModalContent({ onClose }: { onClose: () => void }) {
                 onChange={(e) => setInput(e.target.value.toUpperCase())}
                 placeholder={CONFIRM_WORD}
                 className={`px-4 py-3.5 rounded-xl border-2 bg-white font-bold tracking-widest transition-colors focus:outline-none placeholder:text-sapin/20 placeholder:font-normal placeholder:tracking-normal ${
-                  confirmed ? "border-peach text-peach" : "border-sapin/20 text-sapin focus:border-sapin"
+                  confirmed
+                    ? "border-peach text-peach"
+                    : "border-sapin/20 text-sapin focus:border-sapin"
                 }`}
               />
             </div>
 
             <div className="flex gap-3">
-              <Button label="Annuler" variant="sapin-outline" showArrow={false} onClick={onClose} className="flex-1 justify-center" />
+              <Button
+                label="Annuler"
+                variant="sapin-outline"
+                showArrow={false}
+                onClick={onClose}
+                className="flex-1 justify-center"
+              />
               <Button
                 label={isPending ? "Suppression…" : "Supprimer"}
                 variant="peach"
@@ -99,11 +119,19 @@ function ModalContent({ onClose }: { onClose: () => void }) {
   );
 }
 
-export default function DeleteConfirmModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+export default function DeleteConfirmModal({
+  isOpen,
+  onClose,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+}) {
   const [mounted] = useState(() => typeof window !== "undefined");
   if (!mounted) return null;
   return createPortal(
-    <AnimatePresence>{isOpen && <ModalContent key="modal" onClose={onClose} />}</AnimatePresence>,
-    document.body
+    <AnimatePresence>
+      {isOpen && <ModalContent key="modal" onClose={onClose} />}
+    </AnimatePresence>,
+    document.body,
   );
 }

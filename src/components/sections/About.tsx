@@ -2,8 +2,8 @@ import { Zap, TrendingUp, Shield, Heart } from "@deemlol/next-icons";
 import { type ReactNode } from "react";
 import Reveal from "../animations/Reveal";
 import SlideIn from "../animations/SlideIn";
-import CtaBanner from "../ui/CtaBanner";
-import ValueCard from "../ui/ValueCard";
+import CtaBanner from "../ui/sections/CtaBanner";
+import ValueCard from "../ui/cards/ValueCard";
 import {
   aboutStats,
   aboutValues,

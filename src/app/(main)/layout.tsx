@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/src/lib/supabase/server";
-import PendingValidationModal from "@/src/components/ui/PendingValidationModal";
+import PendingValidationModal from "@/src/components/ui/modals/PendingValidationModal";
 
 export default async function MainLayout({
   children,

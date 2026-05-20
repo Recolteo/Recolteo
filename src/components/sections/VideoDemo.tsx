@@ -5,8 +5,8 @@ import { AnimatePresence, motion } from "motion/react";
 import { Check } from "@deemlol/next-icons";
 import Reveal from "../animations/Reveal";
 import SlideIn from "../animations/SlideIn";
-import TabToggle from "../ui/TabToggle";
-import VideoPlayer from "../ui/VideoPlayer";
+import TabToggle from "../ui/primitives/TabToggle";
+import VideoPlayer from "../ui/media/VideoPlayer";
 import { demos, tabs, type UserType } from "@/src/lib/data/videoDemo";
 import { VideoDemoDecorations } from "../illustrations/assetsIllustrations";
 

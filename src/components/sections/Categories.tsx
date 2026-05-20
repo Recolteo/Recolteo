@@ -1,6 +1,6 @@
 "use client";
 
-import Button from "../ui/Button";
+import Button from "../ui/primitives/Button";
 import Reveal from "../animations/Reveal";
 import DraggablePill from "../animations/DraggablePill";
 import { categoryRows } from "../../lib/data/categories";
