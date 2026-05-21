@@ -37,7 +37,7 @@ export async function notifyAdminNewProfile({
         </table>
         <br/>
         <a href="${appUrl}/admin" style="background:#06573f;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;">
-          Accéder au dashboard admin →
+          Accéder à l'espace admin →
         </a>
       </div>
     `,

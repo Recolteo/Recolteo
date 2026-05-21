@@ -6,7 +6,7 @@ import footerIllustration from "@/src/asset/footer.svg";
 const navLinks = [
   { label: "Accueil", href: "/" },
   { label: "Découvrir Récoltéo", href: "/decouvrir-recolteo" },
-  { label: "Dashboard", href: "/dashboard" },
+  { label: "Lots", href: "/lots" },
   { label: "Contact", href: "/contact" },
 ];
 

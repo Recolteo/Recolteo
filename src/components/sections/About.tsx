@@ -85,8 +85,8 @@ export default function About() {
           <CtaBanner
             heading="Prêt à réduire votre gaspillage ?"
             subheading="Rejoignez les 150+ commerçants qui agissent déjà."
-            buttonLabel="Accéder au dashboard"
-            buttonHref="/dashboard"
+            buttonLabel="Accéder aux lots"
+            buttonHref="/lots"
           />
         </Reveal>
       </div>

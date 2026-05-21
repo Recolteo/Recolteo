@@ -56,7 +56,7 @@ export default function ProfileCard({
         <div className="px-6 sm:px-8 py-5">
           <Btn
             label={cta.label}
-            href="./dashboard"
+            href="./lots"
             variant={btnVariant}
             size="sm"
           />

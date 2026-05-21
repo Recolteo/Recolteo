@@ -31,7 +31,7 @@ export default function Categories() {
           <Reveal delay={0.36}>
             <Button
               label="Explorer les catégories"
-              href="/dashboard"
+              href="/lots"
               variant="sapin"
             />
           </Reveal>

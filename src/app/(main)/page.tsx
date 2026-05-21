@@ -15,7 +15,7 @@ export default function Home() {
         primaryButton="Explorer la plateforme"
         primaryButtonHref="./decouvrir-recolteo"
         secondaryButton="Profiter des offres"
-        secondaryButtonHref="./dashboard"
+        secondaryButtonHref="./lots"
       />
       <Categories />
       <HowItWorks />

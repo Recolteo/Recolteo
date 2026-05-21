@@ -14,7 +14,7 @@ export default function Contact() {
         primaryButton="Explorer la plateforme"
         primaryButtonHref="./decouvrir-recolteo"
         secondaryButton="Profiter des offres"
-        secondaryButtonHref="./dashboard"
+        secondaryButtonHref="./lots"
       />
       <ContactSection
         title="Nous restons à votre"

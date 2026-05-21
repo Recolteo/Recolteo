@@ -55,5 +55,5 @@ export async function declarerLot(
     return { error: `Erreur lors de la déclaration : ${error.message}` };
   }
 
-  redirect("/dashboard");
+  redirect("/lots");
 }

@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 const LOT_FIELDS =
   "id_lot, name_entreprise, adresse, adresse_recup, category, nature, quantity, dlc, montant_chiffre, montant_lettre, created_at";
 
-export default async function LotsPage() {
+export default async function LotPage() {
   const supabase = await createClient();
   const {
     data: { user },
@@ -58,7 +58,7 @@ export default async function LotsPage() {
           primaryButton="Déclarer un lot"
           primaryButtonHref="/lots/declarer-lot"
           secondaryButton="Contactez-nous"
-          secondaryButtonHref="contact"
+          secondaryButtonHref="/contact"
         />
         <CatalogueLots lots={lots} />
       </main>

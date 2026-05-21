@@ -62,8 +62,8 @@ export default async function DeclarerLotPage() {
         description="Renseignez les informations de votre lot pour le mettre à disposition des associations partenaires de Récoltéo."
         primaryButton="Voir les lots"
         primaryButtonHref="#lots"
-        secondaryButton="Retour au tableau de bord"
-        secondaryButtonHref="/dashboard"
+        secondaryButton="Retour aux lots"
+        secondaryButtonHref="/lots"
       />
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
         <LotFormSection {...formProps} />

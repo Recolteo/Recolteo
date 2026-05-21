@@ -14,7 +14,6 @@ export default async function MainLayout({
 
   if (!user) redirect("/login");
 
-  // Admin → accès complet sans contrôle de validation
   const { data: adminRow } = await supabase
     .from("administrateur")
     .select("id_admin")
@@ -22,15 +21,30 @@ export default async function MainLayout({
 
   if (adminRow) return <>{children}</>;
 
-  // Vérification du statut de validation
+  const { data: userRow } = await supabase
+    .from("user")
+    .select("id_user")
+    .eq("auth_id", user.id)
+    .maybeSingle();
+
+  if (!userRow) {
+    return (
+      <main className="flex-1 flex items-center justify-center py-20 px-4">
+        <PendingValidationModal />
+      </main>
+    );
+  }
+
   const { data: commercant } = await supabase
     .from("commercant")
-    .select("is_validated, name_entreprise")
+    .select("is_validated")
+    .eq("id_user", userRow.id_user)
     .maybeSingle();
 
   const { data: association } = await supabase
     .from("association")
-    .select("is_validated, name_entreprise")
+    .select("is_validated")
+    .eq("id_user", userRow.id_user)
     .maybeSingle();
 
   const entity = commercant ?? association;
