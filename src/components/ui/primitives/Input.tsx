@@ -7,6 +7,7 @@ interface InputProps {
   placeholder?: string;
   min?: string | number;
   max?: string | number;
+  step?: string | number;
   defaultValue?: string | number;
   rows?: number;
 }
@@ -20,6 +21,7 @@ export default function Input({
   placeholder,
   min,
   max,
+  step,
   defaultValue,
   rows,
 }: InputProps) {
@@ -51,6 +53,7 @@ export default function Input({
           placeholder={placeholder}
           min={min}
           max={max}
+          step={step}
           defaultValue={defaultValue}
           className={baseClass}
         />

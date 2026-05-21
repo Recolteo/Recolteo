@@ -64,7 +64,7 @@ export default function ProfilLayout({
             onChange={(v) => setTab(v as Tab)}
             fullWidth
           />
-          <div className="min-h-[300px]">
+          <div className="min-h-72">
             {tab === "info" && <InfoTab entityInfo={entityInfo} />}
             {tab === "docs" && <DocsTab role={role} authId={authId} />}
             {tab === "historique" && (
@@ -87,7 +87,7 @@ export default function ProfilLayout({
 
       <Reveal delay={0.24}>
         <ValueCard
-          icon={<Shield size={16} />}
+          icon={<Shield size={20} />}
           title="Données protégées"
           description="Vos informations sont chiffrées et accessibles uniquement par l'équipe Récoltéo."
         />
@@ -95,6 +95,13 @@ export default function ProfilLayout({
 
       <Reveal delay={0.3}>
         <div className="border-t border-sapin/10 pt-6 flex flex-col gap-3">
+          <button
+            onClick={() => setDeleteModalOpen(true)}
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border-2 border-peach/25 text-peach font-bold hover:bg-peach hover:text-cream hover:border-peach transition-all"
+          >
+            <UserX size={20} />
+            Supprimer mon compte et mes données
+          </button>
           <Button
             label={isPendingSignOut ? "Déconnexion…" : "Se déconnecter"}
             variant="sapin"
@@ -103,13 +110,6 @@ export default function ProfilLayout({
             onClick={() => startSignOut(() => signOut())}
             className="w-full justify-center"
           />
-          <button
-            onClick={() => setDeleteModalOpen(true)}
-            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border-2 border-peach/25 text-peach font-bold hover:bg-peach hover:text-cream hover:border-peach transition-all"
-          >
-            <UserX size={15} />
-            Supprimer mon compte et mes données
-          </button>
         </div>
       </Reveal>
 
