@@ -1,5 +1,5 @@
 import Hero from "@/src/components/sections/Hero";
-import ContactForm from "@/src/components/sections/ContactForm";
+import ContactSection from "@/src/components/sections/ContactSection";
 
 export default function Contact() {
   return (
@@ -16,7 +16,12 @@ export default function Contact() {
         secondaryButton="Profiter des offres"
         secondaryButtonHref="./dashboard"
       />
-      <ContactForm />
+      <ContactSection
+        title="Nous restons à votre"
+        labelTitle="entière disposition"
+        subtitle="pour toute question"
+        description="Contactez-nous via le formulaire ci-dessous, nous vous répondrons dans les plus brefs délais."
+      />
     </div>
   );
 }
