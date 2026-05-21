@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 };
 
 const LOT_FIELDS =
-  "id_lot, name_entreprise, adresse, adresse_recup, category, nature, quantity, dlc, montant_chiffre, montant_lettre, created_at";
+  "id_lot, name_entreprise, adresse, adresse_recup, instructions, category, nature, quantity, dlc, montant_chiffre, montant_lettre, created_at";
 
 export default async function LotPage() {
   const supabase = await createClient();

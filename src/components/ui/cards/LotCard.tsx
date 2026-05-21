@@ -1,10 +1,14 @@
+"use client";
+
 import Button from "@/src/components/ui/primitives/Button";
+import { useCart } from "@/src/lib/cart-context";
 
 export interface Lot {
   id_lot: number;
   name_entreprise: string;
   adresse: string;
   adresse_recup: string;
+  instructions: string | null;
   category: string;
   nature: string;
   quantity: number;
@@ -14,7 +18,15 @@ export interface Lot {
   created_at: string;
 }
 
-export default function LotCard({ lot, showCartButton }: { lot: Lot; showCartButton?: boolean }) {
+export default function LotCard({
+  lot,
+  showCartButton,
+}: {
+  lot: Lot;
+  showCartButton?: boolean;
+}) {
+  const { addToCart, items } = useCart();
+  const inCart = items.some((i) => i.id_lot === lot.id_lot);
   const dlc = lot.dlc
     ? new Date(lot.dlc).toLocaleDateString("fr-FR", {
         day: "2-digit",
@@ -43,18 +55,24 @@ export default function LotCard({ lot, showCartButton }: { lot: Lot; showCartBut
                 currency: "EUR",
               })}
             </span>
-            <span className="block text-[9px] text-sapin/40 font-medium mt-0.5">{lot.montant_lettre}</span>
+            <span className="block text-[9px] text-sapin/40 font-medium mt-0.5">
+              {lot.montant_lettre}
+            </span>
           </div>
         </div>
 
-        <p className="text-xs lg:text-sm text-sapin/70 leading-relaxed">{lot.nature}</p>
+        <p className="text-xs lg:text-sm text-sapin/70 leading-relaxed">
+          {lot.nature}
+        </p>
 
         <div className="grid grid-cols-2 gap-2 mt-auto">
           <div className="bg-sapin/4 border border-sapin/6 rounded-xl px-3 py-2.5">
             <span className="block text-[10px] font-bold text-sapin/40 uppercase tracking-widest mb-0.5">
               Volume
             </span>
-            <span className="block text-sm font-semibold text-sapin">{lot.quantity} kg</span>
+            <span className="block text-sm font-semibold text-sapin">
+              {lot.quantity} kg
+            </span>
           </div>
 
           {dlc ? (
@@ -62,14 +80,18 @@ export default function LotCard({ lot, showCartButton }: { lot: Lot; showCartBut
               <span className="block text-[10px] font-bold text-peach/60 uppercase tracking-widest mb-0.5">
                 DLC
               </span>
-              <span className="block text-sm font-semibold text-peach whitespace-nowrap">{dlc}</span>
+              <span className="block text-sm font-semibold text-peach whitespace-nowrap">
+                {dlc}
+              </span>
             </div>
           ) : (
             <div className="bg-sapin/4 border border-sapin/6 rounded-xl px-3 py-2.5">
               <span className="block text-[10px] font-bold text-sapin/40 uppercase tracking-widest mb-0.5">
                 Récup.
               </span>
-              <span className="block text-sm font-semibold text-sapin truncate">{lot.adresse_recup}</span>
+              <span className="block text-sm font-semibold text-sapin truncate">
+                {lot.adresse_recup}
+              </span>
             </div>
           )}
         </div>
@@ -77,10 +99,12 @@ export default function LotCard({ lot, showCartButton }: { lot: Lot; showCartBut
         {showCartButton && (
           <Button
             type="button"
-            label="Ajouter au panier"
-            variant="sapin"
+            label={inCart ? "Déjà dans le panier" : "Ajouter au panier"}
+            variant={inCart ? "lime" : "sapin"}
             size="sm"
             showArrow={false}
+            disabled={inCart}
+            onClick={() => addToCart(lot)}
             className="mt-1 w-full justify-center"
           />
         )}

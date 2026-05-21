@@ -5,6 +5,7 @@ import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
 import CookieManager from "../components/ui/cookie/CookieManager";
 import { createClient } from "@/src/lib/supabase/server";
+import { CartProvider } from "@/src/lib/cart-context";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -58,10 +59,12 @@ export default async function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased scroll-smooth`}
     >
       <body className="min-h-full flex flex-col bg-cream">
-        <Header user={userInfo} />
-        {children}
-        <Footer />
-        <CookieManager />
+        <CartProvider>
+          <Header user={userInfo} />
+          {children}
+          <Footer />
+          <CookieManager />
+        </CartProvider>
       </body>
     </html>
   );
