@@ -1,6 +1,8 @@
 import Reveal from "../animations/Reveal";
 import ContactForm from "./ContactForm";
 import ContactDecorations from "../illustrations/ContactDecorations";
+import Image from "next/image";
+import Ecureuil from "@/src/asset/ecureuil.webp";
 
 interface ContactSectionProps {
   title: string;
@@ -38,6 +40,9 @@ export default function ContactSection({
 
           <Reveal delay={0.15}>
             <p className="text-sapin leading-relaxed">{description}</p>
+          </Reveal>
+          <Reveal delay={0.3}>
+            <Image src={Ecureuil} alt="description" width={200} height={200} className="mx-auto mt-8"/>
           </Reveal>
         </div>
 
