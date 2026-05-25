@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useActionState, useState } from "react";
+import { Fragment, useActionState, useEffect, useRef, useState } from "react";
 import { signUp, type ActionState } from "../actions";
 import Input from "@/src/components/ui/primitives/Input";
 import Button from "@/src/components/ui/primitives/Button";
@@ -22,6 +22,35 @@ type Step1Data = {
   confirmPassword: string;
 };
 
+type Step2Data = {
+  name_entreprise: string;
+  adresse: string;
+  rna: string;
+  type_asso: string;
+  rayon_action: string;
+  siret: string;
+  type_activity: string;
+  forme_juridique: string;
+};
+
+const TEL_RE = /^(?:\+33|0033|0)[1-9]\d{8}$/;
+const SIRET_RE = /^\d{14}$/;
+const RNA_RE = /^W\d{9}$/i;
+
+function captureStep2(form: HTMLFormElement): Step2Data {
+  const fd = new FormData(form);
+  return {
+    name_entreprise: (fd.get("name_entreprise") as string) ?? "",
+    adresse: (fd.get("adresse") as string) ?? "",
+    rna: (fd.get("rna") as string) ?? "",
+    type_asso: (fd.get("type_asso") as string) ?? "",
+    rayon_action: (fd.get("rayon_action") as string) ?? "",
+    siret: (fd.get("siret") as string) ?? "",
+    type_activity: (fd.get("type_activity") as string) ?? "",
+    forme_juridique: (fd.get("forme_juridique") as string) ?? "",
+  };
+}
+
 export default function SignUpForm() {
   const [state, action, pending] = useActionState(signUp, {} as ActionState);
   const [step, setStep] = useState<1 | 2>(1);
@@ -33,7 +62,27 @@ export default function SignUpForm() {
     password: "",
     confirmPassword: "",
   });
+  const [s2, setS2] = useState<Step2Data>({
+    name_entreprise: "",
+    adresse: "",
+    rna: "",
+    type_asso: "",
+    rayon_action: "",
+    siret: "",
+    type_activity: "",
+    forme_juridique: "",
+  });
   const [localError, setLocalError] = useState<string>();
+  const step2FormRef = useRef<HTMLFormElement>(null);
+
+  const isTelError = !!state.error?.includes("téléphone");
+
+  useEffect(() => {
+    if (!isTelError || !step2FormRef.current) return;
+    setS2(captureStep2(step2FormRef.current));
+    setLocalError(state.error);
+    setStep(1);
+  }, [state.error, isTelError]);
 
   function handleStep1(e: {
     preventDefault(): void;
@@ -49,6 +98,12 @@ export default function SignUpForm() {
       password: fd.get("password") as string,
       confirmPassword: fd.get("confirmPassword") as string,
     };
+
+    const telNorm = data.tel.replace(/[\s.\-()]/g, "");
+    if (!TEL_RE.test(telNorm)) {
+      setLocalError("Numéro de téléphone invalide (ex : 06 12 34 56 78).");
+      return;
+    }
     if (data.password !== data.confirmPassword) {
       setLocalError("Les mots de passe ne correspondent pas.");
       return;
@@ -57,9 +112,47 @@ export default function SignUpForm() {
       setLocalError("Le mot de passe doit contenir au moins 8 caractères.");
       return;
     }
+
     setLocalError(undefined);
-    setS1(data);
+    setS1({ ...data, tel: telNorm });
     setStep(2);
+  }
+
+  function handleBack() {
+    if (step2FormRef.current) setS2(captureStep2(step2FormRef.current));
+    setLocalError(undefined);
+    setStep(1);
+  }
+
+  function handleStep2(e: {
+    preventDefault(): void;
+    currentTarget: HTMLFormElement;
+  }) {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+
+    if (s1.role === "association") {
+      const rna = (fd.get("rna") as string).trim().toUpperCase();
+      if (!RNA_RE.test(rna)) {
+        setLocalError(
+          "Le numéro RNA doit commencer par W suivi de 9 chiffres (ex : W751000000).",
+        );
+        return;
+      }
+      fd.set("rna", rna);
+    } else {
+      const siret = (fd.get("siret") as string).replace(/\s/g, "");
+      if (!SIRET_RE.test(siret)) {
+        setLocalError("Le SIRET doit contenir exactement 14 chiffres.");
+        return;
+      }
+      fd.set("siret", siret);
+    }
+
+    setLocalError(undefined);
+    fd.append("password", s1.password);
+    fd.append("confirmPassword", s1.confirmPassword);
+    action(fd);
   }
 
   const isAsso = s1.role === "association";
@@ -178,10 +271,16 @@ export default function SignUpForm() {
       )}
 
       {step === 2 && (
-        <form action={action} className="flex flex-col gap-4">
-          {(Object.keys(s1) as (keyof Step1Data)[]).map((k) => (
-            <input key={k} type="hidden" name={k} value={s1[k]} />
-          ))}
+        <form
+          ref={step2FormRef}
+          onSubmit={handleStep2}
+          className="flex flex-col gap-4"
+        >
+          {(Object.keys(s1) as (keyof Step1Data)[])
+            .filter((k) => k !== "password" && k !== "confirmPassword")
+            .map((k) => (
+              <input key={k} type="hidden" name={k} value={s1[k]} />
+            ))}
 
           <div className="grid sm:grid-cols-2 gap-4">
             <div className="sm:col-span-2">
@@ -193,6 +292,7 @@ export default function SignUpForm() {
                 placeholder={
                   isAsso ? "Les Restos du Cœur" : "Ma Boulangerie SAS"
                 }
+                defaultValue={s2.name_entreprise}
               />
             </div>
             <div className="sm:col-span-2">
@@ -202,6 +302,7 @@ export default function SignUpForm() {
                 label="Adresse"
                 required
                 placeholder="12 rue de la Paix, 75001 Paris"
+                defaultValue={s2.adresse}
               />
             </div>
 
@@ -213,6 +314,7 @@ export default function SignUpForm() {
                   label="Numéro RNA"
                   required
                   placeholder="W751000000"
+                  defaultValue={s2.rna}
                 />
                 <Input
                   id="type_asso"
@@ -220,6 +322,7 @@ export default function SignUpForm() {
                   label="Type d'association"
                   required
                   placeholder="Aide alimentaire…"
+                  defaultValue={s2.type_asso}
                 />
                 <div className="sm:col-span-2">
                   <Input
@@ -231,6 +334,7 @@ export default function SignUpForm() {
                     min={1}
                     max={500}
                     placeholder="20"
+                    defaultValue={s2.rayon_action}
                   />
                 </div>
               </>
@@ -242,6 +346,7 @@ export default function SignUpForm() {
                   label="SIRET"
                   required
                   placeholder="123 456 789 00012"
+                  defaultValue={s2.siret}
                 />
                 <Input
                   id="type_activity"
@@ -249,6 +354,7 @@ export default function SignUpForm() {
                   label="Type d'activité"
                   required
                   placeholder="Boulangerie…"
+                  defaultValue={s2.type_activity}
                 />
                 <div className="sm:col-span-2">
                   <Input
@@ -257,18 +363,21 @@ export default function SignUpForm() {
                     label="Forme juridique"
                     required
                     placeholder="SAS, SARL, EI…"
+                    defaultValue={s2.forme_juridique}
                   />
                 </div>
               </>
             )}
           </div>
 
-          {state.error && <ErrorMsg text={state.error} />}
+          {(localError || (state.error && !isTelError)) && (
+            <ErrorMsg text={localError ?? state.error!} />
+          )}
 
           <div className="flex gap-3 mt-1">
             <button
               type="button"
-              onClick={() => setStep(1)}
+              onClick={handleBack}
               className="px-5 py-3.5 rounded-xl border-2 border-sapin/20 text-sapin text-sm font-semibold hover:border-sapin/50 transition-colors"
             >
               ← Retour

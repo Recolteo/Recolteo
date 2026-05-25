@@ -39,14 +39,24 @@ export default async function ProfilPage() {
     );
   }
 
+  const { data: userRow } = await supabase
+    .from("user")
+    .select("id_user")
+    .eq("auth_id", user.id)
+    .maybeSingle();
+
+  if (!userRow) redirect("/");
+
   const [{ data: commercant }, { data: association }] = await Promise.all([
     supabase
       .from("commercant")
       .select("name_entreprise, email, tel, siret, type_activity, forme_juridique, adresse")
+      .eq("id_user", userRow.id_user)
       .maybeSingle(),
     supabase
       .from("association")
       .select("name_entreprise, email, tel, rna, type_asso, rayon_action, adresse")
+      .eq("id_user", userRow.id_user)
       .maybeSingle(),
   ]);
 

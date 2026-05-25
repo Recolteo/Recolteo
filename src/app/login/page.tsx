@@ -12,7 +12,6 @@ export default function LoginPage() {
 
   useEffect(() => {
     const seen = localStorage.getItem("hasSeenMascot");
-
     if (!seen) {
       setShowMascot(true);
       setHasSeenMascot(false);
@@ -30,23 +29,13 @@ export default function LoginPage() {
     };
   }, [showMascot]);
 
-  useEffect(() => {
-    if (!showMascot) return;
-
-    const timer = setTimeout(() => {
-      handleDismiss();
-    }, 10000);
-
-    return () => clearTimeout(timer);
-  }, [showMascot]);
-
   const handleDismiss = () => {
     setShowMascot(false);
     localStorage.setItem("hasSeenMascot", "true");
   };
 
   return (
-    <main className="relative w-full flex flex-col sm:flex-row items-center justify-center min-h-[calc(100vh-80px)] px-4 sm:px-6 lg:px-8 py-10 gap-1 overflow-hidden">
+    <main className="relative w-full flex flex-col sm:flex-row items-center justify-center min-h-[calc(100vh-80px)] px-4 sm:px-6 lg:px-8 py-2 sm:py-10 gap-1 overflow-hidden">
 
       <LoginForm />
 
@@ -59,49 +48,52 @@ export default function LoginPage() {
 
       {!hasSeenMascot && (
         <div
-          className={`fixed bottom-0 left-0 right-0 z-50 transition-all duration-700 ease-in-out
+          className={`fixed bottom-3 left-3 right-3 z-50 transition-all duration-700 ease-in-out
             ${showMascot ? "opacity-100 translate-y-0" : "opacity-0 translate-y-full pointer-events-none"}`}
         >
-          <motion.div
-            initial={{ opacity: 0, x: 40 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3, ease: "easeOut" }}
-            className="absolute right-16 sm:right-32"
-            style={{ bottom: "100%" , marginBottom: "-60px" }}
-          >
-            <Image
-              src={Ecureuil}
-              alt="écureuil Récoltéo"
-              width={220}
-              height={220}
-              className="object-contain"
-            />
-          </motion.div>
-
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, ease: "easeOut" }}
-            className="w-full bg-amber-50 border-t-4 border-sapin px-6 py-5 shadow-2xl"
+            className="relative z-20 w-full bg-amber-50 border-2 border-sapin rounded-2xl shadow-2xl overflow-hidden"
           >
-
-            <div className="inline-block bg-lime/20 border-2 border-sapin rounded px-4 py-1 mb-1">
-              <span className="text-sapin font-semibold text-sm tracking-wide">Léo</span>
-            </div>
-
-            <div className="relative">
-              <p className="text-sapin text-base leading-relaxed font-medium max-w-2xl">
-                Bienvenue sur Récoltéo, accédez à votre espace.
-              </p>
-
-              <div className="absolute bottom-0 right-4 w-0 h-0
-                border-l-[6px] border-l-transparent
-                border-r-[6px] border-r-transparent
-                border-t-[8px] border-t-sapin animate-bounce">
+            <div className="px-8 py-5">
+              <div className="inline-flex items-center gap-2 bg-sapin rounded-full px-4 py-1 mb-3">
+                <div className="w-2 h-2 rounded-full bg-lime animate-pulse" />
+                <span className="text-amber-50 font-semibold text-sm tracking-wide">Léo</span>
               </div>
-            </div>
 
-            <p className="text-lime text-xs mt-3">Cliquez pour continuer...</p>
+              <div className="flex items-center justify-between gap-4">
+                <p className="text-sapin text-lg leading-relaxed font-medium max-w-2xl">
+                  Bienvenue sur Récoltéo, accédez à votre espace.
+                </p>
+
+                <button
+                  onClick={handleDismiss}
+                  className="absolute top-3 right-3 w-7 h-7 flex items-center justify-center rounded-full border-2 border-sapin/40 text-sapin hover:bg-sapin hover:text-amber-50 transition-all duration-200 cursor-pointer text-sm font-bold z-30"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <p className="text-sapin/50 text-xs mt-3 italic">Cliquez n'importe où pour continuer...</p>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, x: 40 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3, ease: "easeOut" }}
+            className="z-10 absolute right-4 sm:right-32"
+            style={{ bottom: "100%", marginBottom: "-60px" }}
+          >
+            <Image
+              src={Ecureuil}
+              alt="écureuil Récoltéo"
+              width={270}
+              height={270}
+              className="object-contain w-[180px] sm:w-[270px]"
+            />
           </motion.div>
         </div>
       )}

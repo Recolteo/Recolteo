@@ -34,10 +34,6 @@ export default function AdminProfileCard({
 
   return (
     <div className="relative bg-white border-2 border-sapin/10 rounded-2xl overflow-hidden shadow-[4px_4px_0_0_rgba(6,87,63,0.08)] flex flex-col">
-      <div
-        className={`h-1.5 w-full ${isCommercant ? "bg-peach" : "bg-lime"}`}
-      />
-
       <div className="p-5 sm:p-6 flex flex-col gap-5">
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div className="flex-1 min-w-0">
@@ -75,7 +71,7 @@ export default function AdminProfileCard({
           {details.map(({ label, value }) => (
             <div
               key={label}
-              className="bg-sapin/[0.04] border border-sapin/[0.06] rounded-xl px-3 py-2.5"
+              className="bg-sapin/5 border border-sapin/5 rounded-xl px-3 py-2.5"
             >
               <p className="text-[10px] font-bold text-sapin/40 uppercase tracking-widest mb-0.5">
                 {label}
