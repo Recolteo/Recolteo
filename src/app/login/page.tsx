@@ -8,13 +8,14 @@ import { useState, useEffect } from "react";
 
 export default function LoginPage() {
   const [showMascot, setShowMascot] = useState(false);
-  const [hasSeenMascot, setHasSeenMascot] = useState(true);
+  const [hasSeenMascot, setHasSeenMascot] = useState(false);
 
   useEffect(() => {
     const seen = localStorage.getItem("hasSeenMascot");
     if (!seen) {
       setShowMascot(true);
-      setHasSeenMascot(false);
+    } else {
+      setHasSeenMascot(true);
     }
   }, []);
 
@@ -32,6 +33,7 @@ export default function LoginPage() {
   const handleDismiss = () => {
     setShowMascot(false);
     localStorage.setItem("hasSeenMascot", "true");
+    setTimeout(() => setHasSeenMascot(true), 700);
   };
 
   return (
@@ -39,7 +41,7 @@ export default function LoginPage() {
 
       <LoginForm />
 
-      {!hasSeenMascot && showMascot && (
+      {showMascot && (
         <div
           className="fixed inset-0 z-40 cursor-pointer"
           onClick={handleDismiss}
