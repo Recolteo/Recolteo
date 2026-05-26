@@ -12,13 +12,23 @@ import ProfilHeader from "./ProfilHeader";
 import InfoTab, { type EntityInfo } from "./InfoTab";
 import DocsTab from "./DocsTab";
 import BreachTab from "./BreachTab";
+import CollectesTab from "./CollectesTab";
+import HistoriqueCommercantTab from "./HistoriqueCommercantTab";
+import HistoriqueAssociationTab from "./HistoriqueAssociationTab";
 import DeleteConfirmModal from "./DeleteConfirmModal";
 
-type Tab = "info" | "docs" | "historique" | "securite";
+type Tab = "info" | "docs" | "collectes" | "historique" | "securite";
 
 const BASE_TABS = [
   { value: "info", label: "Informations" },
   { value: "docs", label: "Documents" },
+  { value: "historique", label: "Historique" },
+];
+
+const COMMERCANT_TABS = [
+  { value: "info", label: "Informations" },
+  { value: "docs", label: "Documents" },
+  { value: "collectes", label: "Collectes" },
   { value: "historique", label: "Historique" },
 ];
 
@@ -67,7 +77,13 @@ export default function ProfilLayout({
       <Reveal delay={0.16}>
         <div className="flex flex-col gap-5">
           <TabToggle
-            tabs={role === "admin" ? ADMIN_TABS : BASE_TABS}
+            tabs={
+              role === "admin"
+                ? ADMIN_TABS
+                : role === "commercant"
+                  ? COMMERCANT_TABS
+                  : BASE_TABS
+            }
             active={tab}
             onChange={(v) => setTab(v as Tab)}
             fullWidth
@@ -75,8 +91,15 @@ export default function ProfilLayout({
           <div className="min-h-72">
             {tab === "info" && <InfoTab entityInfo={entityInfo} />}
             {tab === "docs" && <DocsTab role={role} authId={authId} />}
+            {tab === "collectes" && role === "commercant" && <CollectesTab />}
             {tab === "securite" && role === "admin" && <BreachTab />}
-            {tab === "historique" && (
+            {tab === "historique" && role === "commercant" && (
+              <HistoriqueCommercantTab />
+            )}
+            {tab === "historique" && role === "association" && (
+              <HistoriqueAssociationTab />
+            )}
+            {tab === "historique" && role === "admin" && (
               <EmptyState
                 icon={<Clock size={32} className="text-sapin/30" />}
                 title="Bientôt disponible"

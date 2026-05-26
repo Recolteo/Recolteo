@@ -1,8 +1,12 @@
+"use client";
+
+import { useState } from "react";
 import Reveal from "@/src/components/animations/Reveal";
 import SlideIn from "@/src/components/animations/SlideIn";
 import CtaBanner from "@/src/components/ui/sections/CtaBanner";
 import { DeclarerLotDecorations } from "@/src/components/illustrations/assetsIllustrations";
 import LotForm from "./LotForm";
+import ExcelImportModal from "./ExcelImportModal";
 import type { LotFormProps } from "./types";
 
 type Props = {
@@ -18,12 +22,13 @@ export default function LotFormSection({
   sectionTitleAccent,
   sectionDescription,
 }: Props) {
+  const [modalOpen, setModalOpen] = useState(false);
+
   return (
     <div className="relative max-w-7xl mx-auto">
       <DeclarerLotDecorations />
 
       <div className="relative grid lg:grid-cols-2 gap-10 lg:gap-16 items-start">
-
         <div className="flex flex-col gap-8">
           <Reveal delay={0}>
             <div>
@@ -48,7 +53,7 @@ export default function LotFormSection({
               heading="Vous avez plusieurs lots ?"
               subheading="Importez-les en masse depuis un fichier Excel pour gagner du temps."
               buttonLabel="Importer un Excel"
-              buttonHref="#"
+              onButtonClick={() => setModalOpen(true)}
             />
           </Reveal>
         </div>
@@ -58,8 +63,14 @@ export default function LotFormSection({
             <LotForm {...form} />
           </div>
         </SlideIn>
-
       </div>
+
+      {modalOpen && (
+        <ExcelImportModal
+          commercantId={form.mode === "commercant" ? form.id : undefined}
+          onClose={() => setModalOpen(false)}
+        />
+      )}
     </div>
   );
 }

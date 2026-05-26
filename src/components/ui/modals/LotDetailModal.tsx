@@ -9,33 +9,77 @@ import type { Lot } from "@/src/components/ui/cards/LotCard";
 interface LotDetailModalProps {
   lot: Lot;
   showCartButton?: boolean;
+  codeRetrait?: string | null;
   onClose: () => void;
 }
 
 const DRAG_THRESHOLD = 150;
 
+function InfoCard({
+  label,
+  value,
+  variant = "sapin",
+}: {
+  label: string;
+  value: React.ReactNode;
+  variant?: "sapin" | "peach" | "muted";
+}) {
+  if (variant === "peach") {
+    return (
+      <div className="bg-peach/4 border border-peach/10 rounded-2xl px-4 py-3">
+        <p className="text-[10px] font-bold text-peach/60 uppercase tracking-widest mb-1">
+          {label}
+        </p>
+        <p className="text-lg font-black text-peach">{value}</p>
+      </div>
+    );
+  }
+  if (variant === "muted") {
+    return (
+      <div className="bg-sapin/4 border border-sapin/8 rounded-2xl px-4 py-3">
+        <p className="text-[10px] font-bold text-sapin/40 uppercase tracking-widest mb-1">
+          {label}
+        </p>
+        <p className="text-sm font-semibold text-sapin/60">{value}</p>
+      </div>
+    );
+  }
+  return (
+    <div className="bg-sapin/4 border border-sapin/8 rounded-2xl px-4 py-3">
+      <p className="text-[10px] font-bold text-sapin/40 uppercase tracking-widest mb-1">
+        {label}
+      </p>
+      <p className="text-lg font-black text-sapin">{value}</p>
+    </div>
+  );
+}
+
 export default function LotDetailModal({
   lot,
   showCartButton,
+  codeRetrait,
   onClose,
 }: LotDetailModalProps) {
   const { addToCart, items } = useCart();
   const [dragY, setDragY] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
   const dragging = useRef(false);
   const startY = useRef(0);
   const inCart = items.some((i) => i.id_lot === lot.id_lot);
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = ""; };
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, []);
 
   const dlc = lot.dlc
     ? new Date(lot.dlc).toLocaleDateString("fr-FR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    })
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      })
     : null;
 
   const createdAt = new Date(lot.created_at).toLocaleDateString("fr-FR", {
@@ -46,6 +90,7 @@ export default function LotDetailModal({
 
   const handleTouchStart = (e: React.TouchEvent) => {
     dragging.current = true;
+    setIsDragging(true);
     startY.current = e.touches[0].clientY;
   };
 
@@ -57,6 +102,7 @@ export default function LotDetailModal({
 
   const handleTouchEnd = () => {
     dragging.current = false;
+    setIsDragging(false);
     if (dragY >= DRAG_THRESHOLD) {
       setDragY(typeof window !== "undefined" ? window.innerHeight : 800);
       setTimeout(onClose, 280);
@@ -82,7 +128,9 @@ export default function LotDetailModal({
         className="relative z-10 w-full sm:max-w-md bg-cream rounded-t-3xl sm:rounded-2xl border-2 border-sapin/10 shadow-[0_-4px_32px_0_color-mix(in_srgb,var(--color-sapin)_20%,transparent)] sm:shadow-[8px_8px_0_0_color-mix(in_srgb,var(--color-sapin)_15%,transparent)] overflow-hidden max-h-[92dvh] flex flex-col"
         style={{
           transform: `translateY(${dragY}px)`,
-          transition: dragging.current ? "none" : "transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)",
+          transition: isDragging
+            ? "none"
+            : "transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)",
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -114,7 +162,9 @@ export default function LotDetailModal({
               <h2 className="font-black text-sapin text-base leading-tight">
                 {lot.name_entreprise}
               </h2>
-              <p className="text-xs text-sapin/50 mt-0.5 truncate">{lot.adresse}</p>
+              <p className="text-xs text-sapin/50 mt-0.5 truncate">
+                {lot.adresse}
+              </p>
             </div>
           </div>
           <button
@@ -137,39 +187,39 @@ export default function LotDetailModal({
                   currency: "EUR",
                 })}
               </p>
-              <p className="text-xs text-sapin/40 mt-1 italic">{lot.montant_lettre}</p>
+              <p className="text-xs text-sapin/40 mt-1 italic">
+                {lot.montant_lettre}
+              </p>
             </div>
           </div>
+
+          {codeRetrait && (
+            <div className="bg-lime/20 border-2 border-sapin/20 rounded-2xl px-4 py-4 flex flex-col items-center gap-1">
+              <p className="text-[10px] font-bold text-sapin/50 uppercase tracking-widest">
+                Code de retrait
+              </p>
+              <p className="text-3xl font-black text-sapin tracking-[0.35em]">
+                {codeRetrait}
+              </p>
+            </div>
+          )}
 
           <div className="space-y-1.5">
             <p className="text-[10px] font-bold text-sapin/40 uppercase tracking-widest flex items-center gap-1.5 px-2">
               <Package size={12} />
               Contenu du lot
             </p>
-            <p className="text-sm text-sapin leading-relaxed font-medium px-2">{lot.nature}</p>
+            <p className="text-sm text-sapin leading-relaxed font-medium px-2">
+              {lot.nature}
+            </p>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <div className="bg-sapin/4 border border-sapin/8 rounded-2xl px-4 py-3">
-              <p className="text-[10px] font-bold text-sapin/40 uppercase tracking-widest mb-1">
-                Volume
-              </p>
-              <p className="text-lg font-black text-sapin">{lot.quantity} kg</p>
-            </div>
+            <InfoCard label="Volume" value={`${lot.quantity} kg`} />
             {dlc ? (
-              <div className="bg-peach/4 border border-peach/10 rounded-2xl px-4 py-3">
-                <p className="text-[10px] font-bold text-peach/60 uppercase tracking-widest mb-1">
-                  DLC
-                </p>
-                <p className="text-lg font-black text-peach">{dlc}</p>
-              </div>
+              <InfoCard label="DLC" value={dlc} variant="peach" />
             ) : (
-              <div className="bg-sapin/4 border border-sapin/8 rounded-2xl px-4 py-3">
-                <p className="text-[10px] font-bold text-sapin/40 uppercase tracking-widest mb-1">
-                  Sans DLC
-                </p>
-                <p className="text-sm font-semibold text-sapin/60">—</p>
-              </div>
+              <InfoCard label="Sans DLC" value="—" variant="muted" />
             )}
           </div>
 
@@ -178,7 +228,9 @@ export default function LotDetailModal({
               <MapPin size={12} />
               Adresse de récupération
             </p>
-            <p className="text-sm text-sapin font-medium px-2">{lot.adresse_recup}</p>
+            <p className="text-sm text-sapin font-medium px-2">
+              {lot.adresse_recup}
+            </p>
           </div>
 
           {lot.instructions && (
@@ -187,7 +239,9 @@ export default function LotDetailModal({
                 <Info size={12} />
                 Instructions
               </p>
-              <p className="text-sm text-sapin/80 leading-relaxed">{lot.instructions}</p>
+              <p className="text-sm text-sapin/80 leading-relaxed">
+                {lot.instructions}
+              </p>
             </div>
           )}
 

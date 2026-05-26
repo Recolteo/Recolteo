@@ -30,6 +30,7 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  transpilePackages: ["xlsx"],
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },

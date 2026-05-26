@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/src/lib/supabase/server";
 import Hero from "@/src/components/sections/Hero";
@@ -12,13 +11,22 @@ export default async function DeclarerLotPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
+  const { data: userRow } = await supabase
+    .from("user")
+    .select("id_user")
+    .eq("auth_id", user.id)
+    .maybeSingle();
+
   const [adminResult, commercantResult] = await Promise.all([
     supabase.from("administrateur").select("id_admin").maybeSingle(),
-    supabase
-      .from("commercant")
-      .select("id_commercant, name_entreprise, adresse")
-      .eq("is_validated", true)
-      .maybeSingle(),
+    userRow
+      ? supabase
+          .from("commercant")
+          .select("id_commercant, name_entreprise, adresse")
+          .eq("id_user", userRow.id_user)
+          .eq("is_validated", true)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
   ]);
 
   if (!adminResult.data && !commercantResult.data) redirect("/");
@@ -42,7 +50,12 @@ export default async function DeclarerLotPage() {
     };
   } else {
     const { id_commercant, name_entreprise, adresse } = commercantResult.data!;
-    formProps = { mode: "commercant", id: id_commercant, name: name_entreprise, adresse };
+    formProps = {
+      mode: "commercant",
+      id: id_commercant,
+      name: name_entreprise,
+      adresse,
+    };
   }
 
   return (
@@ -59,7 +72,10 @@ export default async function DeclarerLotPage() {
         secondaryButton="Accéder au formulaire"
         secondaryButtonHref="#form"
       />
-      <section id="form" className="relative px-4 sm:px-6 lg:px-8 py-20 sm:py-28 overflow-hidden">
+      <section
+        id="form"
+        className="relative px-4 sm:px-6 lg:px-8 py-20 sm:py-28 overflow-hidden"
+      >
         <LotFormSection
           form={formProps}
           sectionTitle="Déposez vos"

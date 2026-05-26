@@ -16,7 +16,12 @@ export type ReservationCode = {
 };
 
 export type ReservationResult =
-  | { success: true; codes: ReservationCode[]; creneau: string; emailErrors?: string[] }
+  | {
+      success: true;
+      codes: ReservationCode[];
+      creneau: string;
+      emailErrors?: string[];
+    }
   | { success: false; error: string };
 
 function generateCode(): string {
@@ -35,7 +40,9 @@ function formatCreneau(creneauIso: string): string {
     hour: "2-digit",
     minute: "2-digit",
   });
-  const heureFin = new Date(date.getTime() + 2 * 60 * 60 * 1000).toLocaleTimeString("fr-FR", {
+  const heureFin = new Date(
+    date.getTime() + 2 * 60 * 60 * 1000,
+  ).toLocaleTimeString("fr-FR", {
     hour: "2-digit",
     minute: "2-digit",
   });
@@ -52,9 +59,10 @@ function esc(s: string): string {
 
 export async function reserverLots(
   lotIds: number[],
-  creneauIso: string
+  creneauIso: string,
 ): Promise<ReservationResult> {
-  if (!lotIds.length) return { success: false, error: "Aucun lot sélectionné." };
+  if (!lotIds.length)
+    return { success: false, error: "Aucun lot sélectionné." };
 
   const supabase = await createClient();
   const {
@@ -66,7 +74,11 @@ export async function reserverLots(
   const now = new Date();
   const maxDate = new Date(now);
   maxDate.setDate(maxDate.getDate() + 14);
-  if (isNaN(creneauDate.getTime()) || creneauDate <= now || creneauDate > maxDate) {
+  if (
+    isNaN(creneauDate.getTime()) ||
+    creneauDate <= now ||
+    creneauDate > maxDate
+  ) {
     return { success: false, error: "Créneau invalide." };
   }
 
@@ -84,14 +96,18 @@ export async function reserverLots(
     .select("id_association, name_entreprise, email")
     .eq("id_user", userRow.id_user)
     .maybeSingle();
-  if (!assoc) return { success: false, error: "Compte association introuvable." };
+  if (!assoc)
+    return { success: false, error: "Compte association introuvable." };
 
   const assocEmail = assoc.email ?? user.email;
-  if (!assocEmail) return { success: false, error: "Email association introuvable." };
+  if (!assocEmail)
+    return { success: false, error: "Email association introuvable." };
 
   const { data: lots, error: lotsError } = await admin
     .from("lot")
-    .select("id_lot, nature, name_entreprise, adresse_recup, id_commercant, category, quantity, dlc, montant_chiffre, montant_lettre, instructions")
+    .select(
+      "id_lot, nature, name_entreprise, adresse_recup, id_commercant, category, quantity, dlc, montant_chiffre, montant_lettre, instructions",
+    )
     .in("id_lot", lotIds)
     .eq("statut", true);
 
@@ -106,7 +122,7 @@ export async function reserverLots(
     .in("id_commercant", commercantIds);
 
   const commercantMap = new Map(
-    (commercants ?? []).map((c) => [c.id_commercant, c])
+    (commercants ?? []).map((c) => [c.id_commercant, c]),
   );
 
   const entries = lots.map((lot) => ({ lot, code: generateCode() }));
@@ -119,11 +135,14 @@ export async function reserverLots(
       date: now.toISOString(),
       creneau: creneauIso,
       code_retrait: code,
-    }))
+    })),
   );
 
   if (collectError) {
-    return { success: false, error: "Erreur lors de la réservation : " + collectError.message };
+    return {
+      success: false,
+      error: "Erreur lors de la réservation : " + collectError.message,
+    };
   }
 
   const creneauLabel = formatCreneau(creneauIso);
@@ -131,7 +150,11 @@ export async function reserverLots(
   const assocLotsHtml = entries
     .map(({ lot, code }) => {
       const dlcLabel = lot.dlc
-        ? new Date(lot.dlc).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" })
+        ? new Date(lot.dlc).toLocaleDateString("fr-FR", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+          })
         : null;
       return `
     <tr style="background:#fff;">
@@ -190,7 +213,9 @@ export async function reserverLots(
 
   if (assocEmailError) {
     console.error("Email association :", assocEmailError.message);
-    emailErrors.push(`Association (${assocEmail}) : ${assocEmailError.message}`);
+    emailErrors.push(
+      `Association (${assocEmail}) : ${assocEmailError.message}`,
+    );
   }
 
   type LotRow = (typeof lots)[0];
@@ -201,7 +226,7 @@ export async function reserverLots(
       acc[key].push({ lot, code });
       return acc;
     },
-    {} as Record<number, Array<{ lot: LotRow; code: string }>>
+    {} as Record<number, Array<{ lot: LotRow; code: string }>>,
   );
 
   await Promise.all(
@@ -210,9 +235,13 @@ export async function reserverLots(
       if (!commercant?.email) return;
 
       const merchantLotsHtml = items
-        .map(({ lot, code }) => {
+        .map(({ lot }) => {
           const dlcLabel = lot.dlc
-            ? new Date(lot.dlc).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" })
+            ? new Date(lot.dlc).toLocaleDateString("fr-FR", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+              })
             : null;
           return `
         <tr style="background:#fff;">
@@ -225,14 +254,8 @@ export async function reserverLots(
           <td style="padding:2px 14px;color:#374151;font-size:13px;"><strong>Quantité :</strong> ${lot.quantity}</td>
           <td style="padding:2px 14px;color:#374151;font-size:13px;"><strong>Valeur estimée :</strong> ${esc(lot.montant_lettre)} (${lot.montant_chiffre} €)</td>
         </tr>
-        ${dlcLabel ? `<tr style="background:#fff;"><td colspan="2" style="padding:2px 14px;color:#374151;font-size:13px;"><strong>DLC :</strong> ${dlcLabel}</td></tr>` : ""}
-        ${lot.instructions ? `<tr style="background:#fff;"><td colspan="2" style="padding:2px 14px 8px;color:#374151;font-size:13px;"><strong>Instructions :</strong> ${esc(lot.instructions)}</td></tr>` : ""}
-        <tr style="background:#f9fafb;">
-          <td colspan="2" style="padding:10px 14px 14px;">
-            <span style="font-size:12px;color:#6b7280;text-transform:uppercase;letter-spacing:1px;">Code de validation</span><br/>
-            <span style="font-weight:bold;letter-spacing:4px;font-size:24px;color:#06573f;">${esc(code)}</span>
-          </td>
-        </tr>`;
+        ${dlcLabel ? `<tr style="background:#fff;"><td colspan="2" style="padding:2px 14px 8px;color:#374151;font-size:13px;"><strong>DLC :</strong> ${dlcLabel}</td></tr>` : ""}
+        ${lot.instructions ? `<tr style="background:#fff;"><td colspan="2" style="padding:2px 14px 8px;color:#374151;font-size:13px;"><strong>Instructions :</strong> ${esc(lot.instructions)}</td></tr>` : ""}`;
         })
         .join("");
 
@@ -256,17 +279,22 @@ export async function reserverLots(
               <table style="width:100%;border-collapse:collapse;font-size:14px;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;">
                 <tbody>${merchantLotsHtml}</tbody>
               </table>
-              <p style="color:#6b7280;font-size:13px;margin-top:24px;">L'association présentera ce code lors de la récupération. La procédure de validation commerçant sera disponible prochainement.</p>
+              <p style="color:#6b7280;font-size:13px;margin-top:24px;">Pour valider la collecte lors du passage de l'association, demandez-lui le code de retrait et saisissez-le dans votre espace profil.</p>
               <p style="margin-top:24px;color:#374151;">L'équipe <strong>Récoltéo</strong></p>
             </div>
           </div>`,
       });
 
       if (commercantEmailError) {
-        console.error("Email commerçant non envoyé :", commercantEmailError.message);
-        emailErrors.push(`Commerçant (${commercant.email}) : ${commercantEmailError.message}`);
+        console.error(
+          "Email commerçant non envoyé :",
+          commercantEmailError.message,
+        );
+        emailErrors.push(
+          `Commerçant (${commercant.email}) : ${commercantEmailError.message}`,
+        );
       }
-    })
+    }),
   );
 
   await admin.from("lot").update({ statut: false }).in("id_lot", lotIds);
