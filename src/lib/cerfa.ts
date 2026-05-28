@@ -53,14 +53,15 @@ export async function generateCerfa(data: CerfaData): Promise<Buffer> {
   const siren = commercant.siret.replace(/\s/g, "").substring(0, 9);
   const montant = `${lot.montant_chiffre.toFixed(2)} euros`;
 
-  // Section A — Association bénéficiaire
   const assocAddr = parseAdresse(association.adresse);
+  const assocRue = parseNumeroRue(assocAddr.rue);
   form.getTextField("a1").setText(String(numOrdre));
   form.getTextField("a2").setText(association.name_entreprise);
-  form.getTextField("a3").setText(assocAddr.rue);
   form.getTextField("a4").setText(association.rna);
-  form.getTextField("a5").setText(association.code_postal);
-  form.getTextField("a6").setText(assocAddr.ville);
+  form.getTextField("a5").setText(assocRue.numero);
+  form.getTextField("a6").setText(assocRue.voie);
+  form.getTextField("a7").setText(association.code_postal);
+  form.getTextField("a8").setText(assocAddr.ville);
   form.getTextField("a9").setText("France");
   form.getTextField("a10").setText("Don de denrées alimentaires");
 
@@ -69,7 +70,6 @@ export async function generateCerfa(data: CerfaData): Promise<Buffer> {
   cac0.acroField.getWidgets()[5].dict.set(PDFName.of("AS"), PDFName.of("6"));
   cac0.acroField.dict.set(PDFName.of("V"), PDFName.of("6"));
 
-  // Section B — Commerçant donateur
   const commAddr = parseAdresse(commercant.adresse);
   const commRue = parseNumeroRue(commAddr.rue);
   form.getTextField("b4").setText(commercant.name_entreprise);
@@ -87,12 +87,9 @@ export async function generateCerfa(data: CerfaData): Promise<Buffer> {
   form.getTextField("b18").setText(montant);
   form.getTextField("b19").setText(lot.montant_lettre);
 
-  // Signature — nom et qualité du signataire
-  form.getTextField("b20").setText(commercant.name_entreprise);
   form.getTextField("b21").setText(dateCollect);
   form.getTextField("b27").setText(dateCollect);
 
-  // Signature électronique dessinée dans la zone signature
   const font = await pdf.embedFont(StandardFonts.HelveticaOblique);
   const page = pdf.getPages()[0];
   const sigText = commercant.name_entreprise;
