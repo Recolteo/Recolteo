@@ -58,6 +58,13 @@ type Step2Data = {
   forme_juridique: string;
 };
 
+type BanSuggestion = {
+  label: string;
+  rue: string;
+  code_postal: string;
+  ville: string;
+};
+
 const TEL_RE = /^(?:\+33|0033|0)[1-9]\d{8}$/;
 const SIRET_RE = /^\d{14}$/;
 const RNA_RE = /^W\d{9}$/i;
@@ -120,7 +127,51 @@ export default function SignUpForm() {
   );
   const [acceptsCgu, setAcceptsCgu] = useState(false);
   const [localError, setLocalError] = useState<string>();
+  const [banSuggestions, setBanSuggestions] = useState<BanSuggestion[]>([]);
   const step2FormRef = useRef<HTMLFormElement>(null);
+  const banTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function onClickOutside(e: MouseEvent) {
+      if (suggestionsRef.current && !suggestionsRef.current.contains(e.target as Node)) {
+        setBanSuggestions([]);
+      }
+    }
+    document.addEventListener("mousedown", onClickOutside);
+    return () => document.removeEventListener("mousedown", onClickOutside);
+  }, []);
+
+  async function fetchBanSuggestions(query: string) {
+    if (query.length < 4) { setBanSuggestions([]); return; }
+    try {
+      const res = await fetch(
+        `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&limit=5&type=housenumber`,
+      );
+      const data: { features: { properties: { label: string; housenumber?: string; street?: string; name?: string; postcode: string; city: string } }[] } = await res.json();
+      setBanSuggestions(
+        data.features.map((f) => ({
+          label: f.properties.label,
+          rue: [f.properties.housenumber, f.properties.street ?? f.properties.name].filter(Boolean).join(" "),
+          code_postal: f.properties.postcode,
+          ville: f.properties.city,
+        })),
+      );
+    } catch {
+      setBanSuggestions([]);
+    }
+  }
+
+  function handleRueChange(val: string) {
+    setS2((p) => ({ ...p, rue: val }));
+    if (banTimeoutRef.current) clearTimeout(banTimeoutRef.current);
+    banTimeoutRef.current = setTimeout(() => fetchBanSuggestions(val), 350);
+  }
+
+  function handleSelectSuggestion(s: BanSuggestion) {
+    setS2((p) => ({ ...p, rue: s.rue, code_postal: s.code_postal, ville: s.ville }));
+    setBanSuggestions([]);
+  }
 
   const isTelError = !!state.error?.includes("téléphone");
 
@@ -370,21 +421,39 @@ export default function SignUpForm() {
                 defaultValue={s2.name_entreprise}
               />
             </div>
-            <Input
-              id="rue"
-              name="rue"
-              label="Rue"
-              required
-              placeholder="12 rue de la Paix"
-              defaultValue={s2.rue}
-            />
+            <div className="relative" ref={suggestionsRef}>
+              <Input
+                id="rue"
+                name="rue"
+                label="Rue"
+                required
+                placeholder="12 rue de la Paix"
+                value={s2.rue}
+                onChange={handleRueChange}
+              />
+              {banSuggestions.length > 0 && (
+                <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white border border-sapin/20 rounded-xl shadow-lg overflow-hidden">
+                  {banSuggestions.map((s, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      className="w-full text-left px-4 py-2.5 text-sm text-sapin hover:bg-sapin/5 transition-colors border-b border-sapin/8 last:border-0"
+                      onMouseDown={() => handleSelectSuggestion(s)}
+                    >
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
             <Input
               id="code_postal"
               name="code_postal"
               label="Code postal"
               required
               placeholder="75001"
-              defaultValue={s2.code_postal}
+              value={s2.code_postal}
+              onChange={(v) => setS2((p) => ({ ...p, code_postal: v }))}
             />
             <div className="sm:col-span-2">
               <Input
@@ -393,7 +462,8 @@ export default function SignUpForm() {
                 label="Ville"
                 required
                 placeholder="Paris"
-                defaultValue={s2.ville}
+                value={s2.ville}
+                onChange={(v) => setS2((p) => ({ ...p, ville: v }))}
               />
             </div>
 

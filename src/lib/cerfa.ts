@@ -42,6 +42,20 @@ function parseNumeroRue(rue: string): { numero: string; voie: string } {
   return { numero: match[1].trim(), voie: match[2].trim() };
 }
 
+async function getCommuneFromPostalCode(codePostal: string): Promise<string> {
+  if (!/^\d{5}$/.test(codePostal)) return "";
+  try {
+    const res = await fetch(
+      `https://geo.api.gouv.fr/communes?codePostal=${codePostal}&fields=nom&format=json`,
+    );
+    if (!res.ok) return "";
+    const data: { nom: string }[] = await res.json();
+    return data[0]?.nom ?? "";
+  } catch {
+    return "";
+  }
+}
+
 export async function generateCerfa(data: CerfaData): Promise<Buffer> {
   const templatePath = path.join(process.cwd(), "src/asset/CERFA.pdf");
   const templateBytes = fs.readFileSync(templatePath);
@@ -55,13 +69,16 @@ export async function generateCerfa(data: CerfaData): Promise<Buffer> {
 
   const assocAddr = parseAdresse(association.adresse);
   const assocRue = parseNumeroRue(assocAddr.rue);
+  const assocCommune =
+    assocAddr.ville || (await getCommuneFromPostalCode(association.code_postal));
+
   form.getTextField("a1").setText(String(numOrdre));
   form.getTextField("a2").setText(association.name_entreprise);
   form.getTextField("a4").setText(association.rna);
   form.getTextField("a5").setText(assocRue.numero);
   form.getTextField("a6").setText(assocRue.voie);
   form.getTextField("a7").setText(association.code_postal);
-  form.getTextField("a8").setText(assocAddr.ville);
+  form.getTextField("a8").setText(assocCommune);
   form.getTextField("a9").setText("France");
   form.getTextField("a10").setText("Don de denrées alimentaires");
 
@@ -72,13 +89,16 @@ export async function generateCerfa(data: CerfaData): Promise<Buffer> {
 
   const commAddr = parseAdresse(commercant.adresse);
   const commRue = parseNumeroRue(commAddr.rue);
+  const commCommune =
+    commAddr.ville || (await getCommuneFromPostalCode(commercant.code_postal));
+
   form.getTextField("b4").setText(commercant.name_entreprise);
   form.getTextField("b5").setText(commercant.forme_juridique);
   form.getTextField("b6").setText(siren);
   form.getTextField("b7").setText(commRue.numero);
   form.getTextField("b8").setText(commRue.voie);
   form.getTextField("b9").setText(commercant.code_postal);
-  form.getTextField("b10").setText(commAddr.ville);
+  form.getTextField("b10").setText(commCommune);
 
   form.getTextField("b11").setText(montant);
   form.getTextField("b12").setText(lot.montant_lettre);
