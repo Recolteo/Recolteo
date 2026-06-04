@@ -3,7 +3,7 @@
 import { useTransition } from "react";
 import { Clock, Mail } from "@deemlol/next-icons";
 import Button from "@/src/components/ui/primitives/Button";
-import { signOut } from "@/src/app/login/actions";
+import { signOut } from "@/src/app/(public)/login/actions";
 
 export default function PendingValidationModal() {
   const [isPending, startTransition] = useTransition();

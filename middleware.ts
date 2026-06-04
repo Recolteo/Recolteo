@@ -68,6 +68,8 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isLoginPage = pathname.startsWith("/login");
   const isPublicPage =
+    pathname === "/" ||
+    pathname === "/decouvrir-recolteo" ||
     pathname === "/contact" ||
     pathname === "/mentions-legales" ||
     pathname === "/politique-de-confidentialite" ||

@@ -1,5 +1,5 @@
 import LoginForm from "./_components/LoginForm";
-import Leo from "../../components/ui/modals/Leo";
+import Leo from "../../../components/ui/modals/Leo";
 
 const LEO_STEPS = [
   { message: "Bienvenue sur Récoltéo, accédez à votre espace." },

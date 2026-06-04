@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { UserX, Shield } from "@deemlol/next-icons";
-import { signOut } from "@/src/app/login/actions";
+import { signOut } from "@/src/app/(public)/login/actions";
 import Button from "@/src/components/ui/primitives/Button";
 import TabToggle from "@/src/components/ui/primitives/TabToggle";
 import ValueCard from "@/src/components/ui/cards/ValueCard";
