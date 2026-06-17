@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { after } from "next/server";
 import { Resend } from "resend";
 import { createAdminClient } from "@/src/lib/supabase/admin";
@@ -115,7 +115,7 @@ export async function validateProfile(formData: FormData) {
   if (type === "commercant") {
     const { data } = await admin
       .from("commercant")
-      .select("name_entreprise")
+      .select("name_entreprise, id_user")
       .eq("id_commercant", id)
       .maybeSingle();
     await admin
@@ -123,6 +123,12 @@ export async function validateProfile(formData: FormData) {
       .update({ is_validated: true })
       .eq("id_commercant", id);
     if (data) {
+      const { data: userRow } = await admin
+        .from("user")
+        .select("auth_id")
+        .eq("id_user", data.id_user)
+        .maybeSingle();
+      if (userRow?.auth_id) revalidateTag(`user:${userRow.auth_id}`, "max");
       await logAdminAction(
         adminRow.id_admin,
         adminRow.prenom,
@@ -135,7 +141,7 @@ export async function validateProfile(formData: FormData) {
   } else {
     const { data } = await admin
       .from("association")
-      .select("name_entreprise")
+      .select("name_entreprise, id_user")
       .eq("id_association", id)
       .maybeSingle();
     await admin
@@ -143,6 +149,12 @@ export async function validateProfile(formData: FormData) {
       .update({ is_validated: true })
       .eq("id_association", id);
     if (data) {
+      const { data: userRow } = await admin
+        .from("user")
+        .select("auth_id")
+        .eq("id_user", data.id_user)
+        .maybeSingle();
+      if (userRow?.auth_id) revalidateTag(`user:${userRow.auth_id}`, "max");
       await logAdminAction(
         adminRow.id_admin,
         adminRow.prenom,
@@ -255,9 +267,18 @@ type CollectJoinRow = {
     quantity: number;
     montant_chiffre: number;
     adresse_recup: string;
-    commercant: { name_entreprise: string; email: string; adresse: string | null } | null;
+    commercant: {
+      name_entreprise: string;
+      email: string;
+      adresse: string | null;
+    } | null;
   } | null;
-  association: { name_entreprise: string; email: string | null; tel: string | null; adresse: string | null } | null;
+  association: {
+    name_entreprise: string;
+    email: string | null;
+    tel: string | null;
+    adresse: string | null;
+  } | null;
 };
 
 function mapCollectJoin(c: CollectJoinRow, statut: boolean): CollectAdminItem {
@@ -286,6 +307,8 @@ const COLLECT_JOIN = `
   association:id_association(name_entreprise, email, tel, adresse)
 ` as const;
 
+const ADMIN_PAGE_SIZE = 200;
+
 export async function getPendingCollects(): Promise<CollectAdminItem[]> {
   await assertAdmin();
   const admin = createAdminClient();
@@ -297,12 +320,14 @@ export async function getPendingCollects(): Promise<CollectAdminItem[]> {
     .order("creneau", { ascending: true })
     .limit(ADMIN_PAGE_SIZE);
 
-  return (data ?? []).map((c) => mapCollectJoin(c as unknown as CollectJoinRow, false));
+  return (data ?? []).map((c) =>
+    mapCollectJoin(c as unknown as CollectJoinRow, false),
+  );
 }
 
-const ADMIN_PAGE_SIZE = 200;
-
-export async function getAllCollectsAdmin(page = 0): Promise<CollectAdminItem[]> {
+export async function getAllCollectsAdmin(
+  page = 0,
+): Promise<CollectAdminItem[]> {
   await assertAdmin();
   const admin = createAdminClient();
 
@@ -419,104 +444,109 @@ export async function validerCollectAdmin(
     signed_at: new Date().toISOString(),
   });
 
-  const dateCollect = formatDate(collect.date);
-  let pdfBuffer: Buffer | null = null;
-  try {
-    pdfBuffer = await generateCerfa({
-      numOrdre: numeroSequentiel,
-      association: {
-        name_entreprise: association.name_entreprise,
-        rna: association.rna ?? "",
-        adresse: association.adresse ?? "",
-        code_postal: association.code_postal ?? "",
-      },
-      commercant: {
-        name_entreprise: commercant.name_entreprise,
-        forme_juridique: commercant.forme_juridique ?? "",
-        siret: commercant.siret ?? "",
-        adresse: commercant.adresse ?? "",
-        code_postal: commercant.code_postal ?? "",
-      },
-      lot: {
-        nature: lot.nature,
-        quantity: lot.quantity,
-        montant_chiffre: lot.montant_chiffre,
-        montant_lettre: lot.montant_lettre ?? "",
-      },
-      dateCollect,
-    });
-  } catch (e) {
-    console.error("Erreur génération CERFA :", e);
-  }
-
-  if (pdfBuffer) {
-    const storagePath = `${commercant.id_commercant}/${collect.id_collect}.pdf`;
-    const { error: uploadError } = await admin.storage
-      .from("cerfas")
-      .upload(storagePath, pdfBuffer, {
-        contentType: "application/pdf",
-        upsert: true,
-      });
-    if (!uploadError) {
-      await admin
-        .from("document_fiscal")
-        .update({ pdf: storagePath })
-        .eq("id_collect", collect.id_collect);
-    }
-  }
-
   const creneauLabel = formatCreneau(collect.creneau);
+  const dateCollect = formatDate(collect.date);
 
-  await Promise.all([
-    resend.emails.send({
-      from: "Récoltéo <onboarding@resend.dev>",
-      to: commercant.email,
-      subject: `Collecte validée — CERFA fiscal n°${numeroSequentiel} — Récoltéo`,
-      html: `
-        <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
-          <div style="background:#06573f;padding:24px;border-radius:12px 12px 0 0;">
-            <h1 style="color:#c9f242;margin:0;font-size:24px;">Collecte validée !</h1>
-          </div>
-          <div style="background:#f9fafb;padding:24px;border-radius:0 0 12px 12px;border:1px solid #e5e7eb;border-top:none;">
-            <p style="color:#374151;">Bonjour <strong>${commercant.name_entreprise}</strong>,</p>
-            <p style="color:#374151;">La collecte avec l'association <strong>${association.name_entreprise}</strong> a bien été validée par l'équipe Récoltéo.</p>
-            <div style="background:rgba(6,87,63,0.08);border:1px solid rgba(6,87,63,0.2);border-radius:8px;padding:16px;margin:16px 0;">
-              <p style="margin:0;font-weight:bold;color:#06573f;">Lot concerné</p>
-              <p style="margin:8px 0 0;color:#374151;">${lot.nature} — Valeur : ${lot.montant_chiffre} €</p>
-            </div>
-            <p style="color:#374151;">Votre reçu fiscal CERFA 16216*03 est joint à cet email.</p>
-            <p style="margin-top:24px;color:#374151;">L'équipe <strong>Récoltéo</strong></p>
-          </div>
-        </div>`,
-      ...(pdfBuffer
-        ? {
-          attachments: [
-            { filename: `cerfa_${numeroSequentiel}.pdf`, content: pdfBuffer },
-          ],
-        }
-        : {}),
-    }),
-    association.email
-      ? resend.emails.send({
+  after(async () => {
+    let pdfBuffer: Buffer | null = null;
+    try {
+      pdfBuffer = await generateCerfa({
+        numOrdre: numeroSequentiel,
+        association: {
+          name_entreprise: association.name_entreprise,
+          rna: association.rna ?? "",
+          adresse: association.adresse ?? "",
+          code_postal: association.code_postal ?? "",
+        },
+        commercant: {
+          name_entreprise: commercant.name_entreprise,
+          forme_juridique: commercant.forme_juridique ?? "",
+          siret: commercant.siret ?? "",
+          adresse: commercant.adresse ?? "",
+          code_postal: commercant.code_postal ?? "",
+        },
+        lot: {
+          nature: lot.nature,
+          quantity: lot.quantity,
+          montant_chiffre: lot.montant_chiffre,
+          montant_lettre: lot.montant_lettre ?? "",
+        },
+        dateCollect,
+      });
+    } catch (e) {
+      console.error("Erreur génération CERFA :", e);
+    }
+
+    if (pdfBuffer) {
+      const storagePath = `${commercant.id_commercant}/${collect.id_collect}.pdf`;
+      const { error: uploadError } = await admin.storage
+        .from("cerfas")
+        .upload(storagePath, pdfBuffer, {
+          contentType: "application/pdf",
+          upsert: true,
+        });
+      if (!uploadError) {
+        await admin
+          .from("document_fiscal")
+          .update({ pdf: storagePath })
+          .eq("id_collect", collect.id_collect);
+      }
+    }
+
+    await Promise.all([
+      resend.emails.send({
         from: "Récoltéo <onboarding@resend.dev>",
-        to: association.email,
-        subject: `Collecte confirmée par ${commercant.name_entreprise} — Récoltéo`,
+        to: commercant.email,
+        subject: `Collecte validée — CERFA fiscal n°${numeroSequentiel} — Récoltéo`,
         html: `
-            <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
-              <div style="background:#06573f;padding:24px;border-radius:12px 12px 0 0;">
-                <h1 style="color:#c9f242;margin:0;font-size:24px;">Collecte confirmée</h1>
+          <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
+            <div style="background:#06573f;padding:24px;border-radius:12px 12px 0 0;">
+              <h1 style="color:#c9f242;margin:0;font-size:24px;">Collecte validée !</h1>
+            </div>
+            <div style="background:#f9fafb;padding:24px;border-radius:0 0 12px 12px;border:1px solid #e5e7eb;border-top:none;">
+              <p style="color:#374151;">Bonjour <strong>${commercant.name_entreprise}</strong>,</p>
+              <p style="color:#374151;">La collecte avec l'association <strong>${association.name_entreprise}</strong> a bien été validée par l'équipe Récoltéo.</p>
+              <div style="background:rgba(6,87,63,0.08);border:1px solid rgba(6,87,63,0.2);border-radius:8px;padding:16px;margin:16px 0;">
+                <p style="margin:0;font-weight:bold;color:#06573f;">Lot concerné</p>
+                <p style="margin:8px 0 0;color:#374151;">${lot.nature} — Valeur : ${lot.montant_chiffre} €</p>
               </div>
-              <div style="background:#f9fafb;padding:24px;border-radius:0 0 12px 12px;border:1px solid #e5e7eb;border-top:none;">
-                <p style="color:#374151;">Bonjour <strong>${association.name_entreprise}</strong>,</p>
-                <p style="color:#374151;">Le commerçant <strong>${commercant.name_entreprise}</strong> a validé la récupération du lot <strong>${lot.nature}</strong>.</p>
-                <p style="color:#374151;">Créneau : ${creneauLabel}</p>
-                <p style="color:#374151;">La valeur du don (<strong>${lot.montant_chiffre} €</strong>) sera prise en compte dans votre cagnotte.</p>
-                <p style="margin-top:24px;color:#374151;">L'équipe <strong>Récoltéo</strong></p>
-              </div>
-            </div>`,
-      })
-      : Promise.resolve(),
-  ]);
+              <p style="color:#374151;">Votre reçu fiscal CERFA 16216*03 est joint à cet email.</p>
+              <p style="margin-top:24px;color:#374151;">L'équipe <strong>Récoltéo</strong></p>
+            </div>
+          </div>`,
+        ...(pdfBuffer
+          ? {
+              attachments: [
+                {
+                  filename: `cerfa_${numeroSequentiel}.pdf`,
+                  content: pdfBuffer,
+                },
+              ],
+            }
+          : {}),
+      }),
+      association.email
+        ? resend.emails.send({
+            from: "Récoltéo <onboarding@resend.dev>",
+            to: association.email,
+            subject: `Collecte confirmée par ${commercant.name_entreprise} — Récoltéo`,
+            html: `
+              <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
+                <div style="background:#06573f;padding:24px;border-radius:12px 12px 0 0;">
+                  <h1 style="color:#c9f242;margin:0;font-size:24px;">Collecte confirmée</h1>
+                </div>
+                <div style="background:#f9fafb;padding:24px;border-radius:0 0 12px 12px;border:1px solid #e5e7eb;border-top:none;">
+                  <p style="color:#374151;">Bonjour <strong>${association.name_entreprise}</strong>,</p>
+                  <p style="color:#374151;">Le commerçant <strong>${commercant.name_entreprise}</strong> a validé la récupération du lot <strong>${lot.nature}</strong>.</p>
+                  <p style="color:#374151;">Créneau : ${creneauLabel}</p>
+                  <p style="color:#374151;">La valeur du don (<strong>${lot.montant_chiffre} €</strong>) sera prise en compte dans votre cagnotte.</p>
+                  <p style="margin-top:24px;color:#374151;">L'équipe <strong>Récoltéo</strong></p>
+                </div>
+              </div>`,
+          })
+        : Promise.resolve(),
+    ]);
+  });
 
   await logAdminAction(
     adminRow.id_admin,

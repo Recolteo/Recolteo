@@ -6,6 +6,7 @@ import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
 import CookieManager from "../components/ui/cookie/CookieManager";
 import { createClient } from "@/src/lib/supabase/server";
+import { getUserProfile } from "@/src/lib/user-profile";
 import { CartProvider } from "@/src/lib/cart-context";
 
 const geistSans = Geist({
@@ -29,7 +30,6 @@ async function HeaderWithAuth() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
   if (!user) return <Header />;
 
   const { data: adminRow } = await supabase
@@ -38,30 +38,17 @@ async function HeaderWithAuth() {
     .maybeSingle();
 
   if (adminRow) {
-    return <Header user={{ nom: `${adminRow.prenom} ${adminRow.nom}`, role: "admin" }} />;
+    return (
+      <Header
+        user={{ nom: `${adminRow.prenom} ${adminRow.nom}`, role: "admin" }}
+      />
+    );
   }
 
-  const { data: userRow } = await supabase
-    .from("user")
-    .select("id_user, nom")
-    .eq("auth_id", user.id)
-    .maybeSingle();
+  const profile = await getUserProfile(user.id);
+  if (!profile) return <Header />;
 
-  if (!userRow) return <Header />;
-
-  const [{ data: commercant }, { data: association }] = await Promise.all([
-    supabase.from("commercant").select("name_entreprise").eq("id_user", userRow.id_user).maybeSingle(),
-    supabase.from("association").select("name_entreprise").eq("id_user", userRow.id_user).maybeSingle(),
-  ]);
-
-  if (commercant) {
-    return <Header user={{ nom: userRow.nom ?? commercant.name_entreprise, role: "commercant" }} />;
-  }
-  if (association) {
-    return <Header user={{ nom: userRow.nom ?? association.name_entreprise, role: "association" }} />;
-  }
-
-  return <Header />;
+  return <Header user={{ nom: profile.nom, role: profile.role }} />;
 }
 
 export default function RootLayout({
