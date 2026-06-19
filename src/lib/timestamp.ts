@@ -32,7 +32,7 @@ export async function getTimestampToken(hashHex: string): Promise<string | null>
     const res = await fetch("https://freetsa.org/tsr", {
       method: "POST",
       headers: { "Content-Type": "application/timestamp-query" },
-      body: tsRequest,
+      body: new Uint8Array(tsRequest),
       signal: AbortSignal.timeout(10000),
     });
     if (!res.ok) return null;
