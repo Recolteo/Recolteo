@@ -573,6 +573,8 @@ export type SubscriptionInfo = {
   currentPeriodEnd: string | null;
   cancelAtPeriodEnd: boolean;
   hasPaymentMethod: boolean;
+  paymentMethodType: string | null;
+  paymentMethodLast4: string | null;
   annualPrice: number | null;
 };
 
@@ -598,12 +600,17 @@ export async function getAssociationSubscription(): Promise<SubscriptionInfo> {
 
   let cancelAtPeriodEnd = false;
   let annualPrice: number | null = null;
+  let paymentMethodType: string | null = null;
+  let paymentMethodLast4: string | null = null;
 
-  const [subResult, priceResult] = await Promise.allSettled([
+  const [subResult, priceResult, pmResult] = await Promise.allSettled([
     asso.stripe_subscription_id
       ? stripe.subscriptions.retrieve(asso.stripe_subscription_id)
       : Promise.reject(),
     stripe.prices.retrieve(ASSOCIATION_ANNUAL_PRICE_ID),
+    asso.stripe_payment_method_id
+      ? stripe.paymentMethods.retrieve(asso.stripe_payment_method_id)
+      : Promise.reject(),
   ]);
 
   if (subResult.status === "fulfilled") {
@@ -612,12 +619,23 @@ export async function getAssociationSubscription(): Promise<SubscriptionInfo> {
   if (priceResult.status === "fulfilled" && priceResult.value.unit_amount) {
     annualPrice = priceResult.value.unit_amount / 100;
   }
+  if (pmResult.status === "fulfilled") {
+    paymentMethodType = pmResult.value.type;
+    paymentMethodLast4 =
+      pmResult.value.type === "card"
+        ? pmResult.value.card?.last4 ?? null
+        : pmResult.value.type === "sepa_debit"
+          ? pmResult.value.sepa_debit?.last4 ?? null
+          : null;
+  }
 
   return {
     status: asso.stripe_subscription_status ?? "none",
     currentPeriodEnd: asso.subscription_current_period_end ?? null,
     cancelAtPeriodEnd,
     hasPaymentMethod: !!asso.stripe_payment_method_id,
+    paymentMethodType,
+    paymentMethodLast4,
     annualPrice,
   };
 }

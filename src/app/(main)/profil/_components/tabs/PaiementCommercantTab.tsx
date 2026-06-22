@@ -35,14 +35,10 @@ export default function PaiementCommercantTab() {
     const savedY = window.scrollY;
     const next = !open;
     setOpen(next);
-    if (next && info && !info.hasPaymentMethod && !clientSecret) {
+    if (next && info && !clientSecret) {
       fetchSetupIntentSecret("commercant").then((s) => { if (s) setClientSecret(s); });
     }
     requestAnimationFrame(() => window.scrollTo(0, savedY));
-  };
-
-  const openForm = () => {
-    fetchSetupIntentSecret("commercant").then((s) => { if (s) setClientSecret(s); });
   };
 
   const loading = info === null;
@@ -85,36 +81,17 @@ export default function PaiementCommercantTab() {
                 <ValueCard
                   icon={<Euro size={20} />}
                   title="Facilitez vos moyens de paiement"
-                  description="Bénéficiez d'une exonération² de 50% sur vos impôts"
+                  description="Bénéficiez d'une exonération de 50% sur vos impôts"
                 />
                 <StripePaymentSetup
                   clientSecret={clientSecret}
-                  submitLabel="Enregistrer"
+                  submitLabel="Enregistrer mes modifications"
                   onPaymentMethodId={async (pmId) => {
                     const r = await saveCommercantPaymentMethod(pmId);
                     return { ok: r.success, error: r.error };
                   }}
                   onSuccess={reload}
                 />
-              </>
-            ) : info?.hasPaymentMethod ? (
-              <>
-                <div className="rounded-xl border border-sapin/15 bg-sapin/5 p-4 flex flex-col gap-1">
-                  <p className="text-xs font-semibold text-sapin/50 uppercase tracking-widest">
-                    Moyen de paiement actif
-                  </p>
-                  <p className="font-bold text-sapin">
-                    {info.type === "sepa_debit" ? "Prélèvement SEPA" : "Carte bancaire"}
-                    {info.last4 ? ` •••• ${info.last4}` : ""}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={openForm}
-                  className="text-sm text-sapin/40 hover:text-sapin transition-colors underline underline-offset-2 text-left"
-                >
-                  Modifier
-                </button>
               </>
             ) : (
               <LoadingSpinner />

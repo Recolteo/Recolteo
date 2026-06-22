@@ -18,9 +18,10 @@ interface FormProps {
   submitLabel: string;
   onPaymentMethodId: (pmId: string) => Promise<{ ok: boolean; error?: string }>;
   onSuccess: () => void;
+  beforeSubmit?: React.ReactNode;
 }
 
-function InnerForm({ submitLabel, onPaymentMethodId, onSuccess }: FormProps) {
+function InnerForm({ submitLabel, onPaymentMethodId, onSuccess, beforeSubmit }: FormProps) {
   const stripe = useStripe();
   const elements = useElements();
   const [error, setError] = useState<string | null>(null);
@@ -71,6 +72,7 @@ function InnerForm({ submitLabel, onPaymentMethodId, onSuccess }: FormProps) {
         Remboursable sous 8 semaines auprès de votre banque.
       </p>
       {error && <p className="text-sm text-peach font-semibold">{error}</p>}
+      {beforeSubmit}
       <Button
         label={pending ? "En cours…" : submitLabel}
         type="submit"

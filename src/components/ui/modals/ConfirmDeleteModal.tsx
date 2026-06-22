@@ -64,7 +64,7 @@ export default function ConfirmDeleteModal({
         <div className="px-6 py-5">
           <p className="text-sm text-sapin/70 leading-relaxed">
             Vous êtes sur le point de supprimer définitivement le lot{" "}
-            <span className="font-bold text-sapin">&quot;{lotName}&quot;</span>.
+            <span className="font-bold text-sapin">'{lotName}'</span>.
             <br />
             Cette action ne peut pas être annulée.
           </p>

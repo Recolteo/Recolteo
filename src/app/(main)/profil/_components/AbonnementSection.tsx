@@ -2,8 +2,11 @@
 
 import { useState, useTransition, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
-import { ChevronDown } from "@deemlol/next-icons";
+import { ChevronDown, Calendar } from "@deemlol/next-icons";
 import LoadingSpinner from "@/src/components/ui/primitives/LoadingSpinner";
+import Button from "@/src/components/ui/primitives/Button";
+import ValueCard from "@/src/components/ui/cards/ValueCard";
+import ConfirmCancelSubscriptionModal from "@/src/components/ui/modals/ConfirmCancelSubscriptionModal";
 import {
   fetchSetupIntentSecret,
   activateSubscription,
@@ -12,7 +15,6 @@ import {
 } from "../_hooks/useStripeSetup";
 import { getAssociationSubscription } from "../actions";
 import type { SubscriptionInfo } from "../actions";
-import SubscriptionPricingCard from "@/src/components/ui/cards/SubscriptionPricingCard";
 
 const StripePaymentSetup = dynamic(() => import("./StripePaymentSetup"), {
   ssr: false,
@@ -32,7 +34,7 @@ export default function AbonnementSection() {
   const [info, setInfo] = useState<SubscriptionInfo | null>(null);
   const [fetchCount, setFetchCount] = useState(0);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
-  const [cancelPending, startCancel] = useTransition();
+  const [showCancelModal, setShowCancelModal] = useState(false);
   const [reactivatePending, startReactivate] = useTransition();
 
   const reload = useCallback(() => {
@@ -66,7 +68,7 @@ export default function AbonnementSection() {
     const savedY = window.scrollY;
     const next = !open;
     setOpen(next);
-    if (next && info && !isActive && !clientSecret) {
+    if (next && info && !clientSecret) {
       fetchSetupIntentSecret("association").then((s) => {
         if (s) setClientSecret(s);
       });
@@ -125,62 +127,54 @@ export default function AbonnementSection() {
                     )}
                   </div>
                 )}
-                {info?.cancelAtPeriodEnd ? (
-                  <div className="rounded-xl border border-sapin/15 bg-sapin/5 p-4 flex flex-col gap-2">
-                    <p className="text-sm text-sapin/70">
-                      Résiliation effective le {periodEnd}. Votre accès reste
-                      actif jusqu'à cette date.
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        startReactivate(async () => {
-                          await requestReactivateSubscription();
-                          reload();
-                        })
-                      }
-                      disabled={reactivatePending}
-                      className="text-sm text-sapin/40 hover:text-sapin/70 transition-colors underline underline-offset-2 text-left w-fit"
-                    >
-                      {reactivatePending
-                        ? "En cours…"
-                        : "Réactiver mon abonnement"}
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      startCancel(async () => {
-                        await requestCancelSubscription();
-                        reload();
-                      })
+                {clientSecret ? (
+                  <StripePaymentSetup
+                    clientSecret={clientSecret}
+                    submitLabel="Enregistrer mes modifications"
+                    onPaymentMethodId={activateSubscription}
+                    onSuccess={reload}
+                    beforeSubmit={
+                      info?.cancelAtPeriodEnd ? (
+                        <div className="rounded-xl border border-sapin/15 bg-sapin/5 p-4 flex flex-col gap-2">
+                          <p className="text-sm text-sapin/70">
+                            Résiliation effective le {periodEnd}. Votre accès reste
+                            actif jusqu'à cette date.
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              startReactivate(async () => {
+                                await requestReactivateSubscription();
+                                reload();
+                              })
+                            }
+                            disabled={reactivatePending}
+                            className="text-sm text-sapin/40 hover:text-sapin/70 transition-colors underline underline-offset-2 text-left w-fit"
+                          >
+                            {reactivatePending ? "En cours…" : "Réactiver mon abonnement"}
+                          </button>
+                        </div>
+                      ) : (
+                        <Button
+                          label="Résilier mon abonnement"
+                          onClick={() => setShowCancelModal(true)}
+                          variant="peach-outline"
+                          showArrow={false}
+                        />
+                      )
                     }
-                    disabled={cancelPending}
-                    className="text-sm text-sapin/40 hover:text-sapin/70 transition-colors underline underline-offset-2 text-left w-fit"
-                  >
-                    {cancelPending ? "En cours…" : "Résilier à l'échéance"}
-                  </button>
+                  />
+                ) : (
+                  <LoadingSpinner />
                 )}
               </>
             ) : clientSecret ? (
               <>
-                {info?.annualPrice != null && (
-                  <SubscriptionPricingCard
-                    title="Abonnement annuel"
-                    price={info.annualPrice}
-                    periodLabel="/ an"
-                    description={
-                      <>
-                        Période d'essai de{" "}
-                        <strong className="font-bold decoration-sapin">
-                          6 mois gratuite
-                        </strong>{" "}
-                        à l'activation.
-                      </>
-                    }
-                  />
-                )}
+                <ValueCard
+                  icon={<Calendar size={20} />}
+                  title="6 mois d'essai gratuit"
+                  description={`Puis ${info?.annualPrice != null ? `${info.annualPrice} €` : "—"} / an. Accès complet à la plateforme, résiliable à l'échéance.`}
+                />
                 <StripePaymentSetup
                   clientSecret={clientSecret}
                   submitLabel="Activer mon abonnement"
@@ -194,6 +188,16 @@ export default function AbonnementSection() {
           </div>
         </div>
       </div>
+      <ConfirmCancelSubscriptionModal
+        isOpen={showCancelModal}
+        periodEnd={periodEnd}
+        onConfirm={async () => {
+          await requestCancelSubscription();
+          setShowCancelModal(false);
+          reload();
+        }}
+        onCancel={() => setShowCancelModal(false)}
+      />
     </>
   );
 }
