@@ -2,7 +2,7 @@ import React from "react";
 import Input from "@/src/components/ui/primitives/Input";
 import Button from "@/src/components/ui/primitives/Button";
 import Checkbox from "@/src/components/ui/primitives/Checkbox";
-import Select from "@/src/components/ui/primitives/Select";
+import Dropdown from "@/src/components/ui/primitives/Dropdown";
 import CguCard from "@/src/components/ui/cards/CguCard";
 import {
   ASSO_CATEGORIES,
@@ -190,47 +190,51 @@ function AssoFields({
       </div>
 
       <div className="sm:col-span-2">
-        <Select
-          id="type_asso_cat"
-          name="type_asso_cat"
-          label="Catégorie"
-          required
-          placeholder="Sélectionnez une catégorie…"
-          options={ASSO_CATEGORIES}
-          value={s2.type_asso_cat}
-          onChange={(v) =>
-            setS2((p) => ({
-              ...p,
-              type_asso_cat: v,
-              type_asso: "",
-              date_reconnaissance: "",
-              date_jo: "",
-              date_agrement: "",
-            }))
-          }
-        />
-      </div>
-
-      {s2.type_asso_cat && (
-        <div className="sm:col-span-2">
-          <Select
-            id="type_asso"
-            name="type_asso"
-            label="Type d'association"
-            required
-            placeholder="Sélectionnez un type…"
-            options={ASSO_TYPE_MAP[s2.type_asso_cat] ?? []}
-            value={s2.type_asso}
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-semibold text-sapin">
+            Catégorie <span className="text-peach">*</span>
+          </label>
+          <input type="hidden" name="type_asso_cat" value={s2.type_asso_cat} />
+          <Dropdown
+            value={s2.type_asso_cat}
+            placeholder="Sélectionnez une catégorie…"
+            options={ASSO_CATEGORIES}
             onChange={(v) =>
               setS2((p) => ({
                 ...p,
-                type_asso: v,
+                type_asso_cat: v,
+                type_asso: "",
                 date_reconnaissance: "",
                 date_jo: "",
                 date_agrement: "",
               }))
             }
           />
+        </div>
+      </div>
+
+      {s2.type_asso_cat && (
+        <div className="sm:col-span-2">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-semibold text-sapin">
+              {"Type d'association"} <span className="text-peach">*</span>
+            </label>
+            <input type="hidden" name="type_asso" value={s2.type_asso} />
+            <Dropdown
+              value={s2.type_asso}
+              placeholder="Sélectionnez un type…"
+              options={ASSO_TYPE_MAP[s2.type_asso_cat] ?? []}
+              onChange={(v) =>
+                setS2((p) => ({
+                  ...p,
+                  type_asso: v,
+                  date_reconnaissance: "",
+                  date_jo: "",
+                  date_agrement: "",
+                }))
+              }
+            />
+          </div>
         </div>
       )}
 

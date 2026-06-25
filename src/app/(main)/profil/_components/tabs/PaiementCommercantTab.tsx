@@ -31,13 +31,17 @@ export default function PaiementCommercantTab() {
     return () => { cancelled = true; };
   }, [fetchCount]);
 
+  useEffect(() => {
+    if (open && info !== null && !clientSecret) {
+      fetchSetupIntentSecret("commercant").then((s) => {
+        if (s) setClientSecret(s);
+      });
+    }
+  }, [open, info, clientSecret]);
+
   const toggle = () => {
     const savedY = window.scrollY;
-    const next = !open;
-    setOpen(next);
-    if (next && info && !clientSecret) {
-      fetchSetupIntentSecret("commercant").then((s) => { if (s) setClientSecret(s); });
-    }
+    setOpen((prev) => !prev);
     requestAnimationFrame(() => window.scrollTo(0, savedY));
   };
 

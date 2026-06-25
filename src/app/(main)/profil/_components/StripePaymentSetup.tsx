@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import {
   Elements,
@@ -25,13 +25,14 @@ function InnerForm({ submitLabel, onPaymentMethodId, onSuccess, beforeSubmit }: 
   const stripe = useStripe();
   const elements = useElements();
   const [error, setError] = useState<string | null>(null);
-  const [pending, start] = useTransition();
+  const [pending, setPending] = useState(false);
 
-  const handleSubmit = (e: { preventDefault(): void }) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!stripe || !elements) return;
+    if (!stripe || !elements || pending) return;
     setError(null);
-    start(async () => {
+    setPending(true);
+    try {
       const { error: confirmError, setupIntent } = await stripe.confirmSetup({
         elements,
         confirmParams: { return_url: `${window.location.origin}/profil` },
@@ -55,7 +56,11 @@ function InnerForm({ submitLabel, onPaymentMethodId, onSuccess, beforeSubmit }: 
         return;
       }
       onSuccess();
-    });
+    } catch {
+      setError("Une erreur est survenue. Veuillez réessayer.");
+    } finally {
+      setPending(false);
+    }
   };
 
   return (
