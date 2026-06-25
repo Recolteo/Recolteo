@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { ChevronDown, Calendar } from "@deemlol/next-icons";
 import LoadingSpinner from "@/src/components/ui/primitives/LoadingSpinner";
@@ -35,7 +35,7 @@ export default function AbonnementSection() {
   const [fetchCount, setFetchCount] = useState(0);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [showCancelModal, setShowCancelModal] = useState(false);
-  const [reactivatePending, startReactivate] = useTransition();
+  const [reactivatePending, setReactivatePending] = useState(false);
 
   const reload = useCallback(() => {
     setInfo(null);
@@ -53,6 +53,14 @@ export default function AbonnementSection() {
     };
   }, [fetchCount]);
 
+  useEffect(() => {
+    if (open && info !== null && !clientSecret) {
+      fetchSetupIntentSecret("association").then((s) => {
+        if (s) setClientSecret(s);
+      });
+    }
+  }, [open, info, clientSecret]);
+
   const loading = info === null;
   const status = info?.status ?? "none";
   const isActive = status === "active" || status === "trialing";
@@ -66,13 +74,7 @@ export default function AbonnementSection() {
 
   const toggle = () => {
     const savedY = window.scrollY;
-    const next = !open;
-    setOpen(next);
-    if (next && info && !clientSecret) {
-      fetchSetupIntentSecret("association").then((s) => {
-        if (s) setClientSecret(s);
-      });
-    }
+    setOpen((prev) => !prev);
     requestAnimationFrame(() => window.scrollTo(0, savedY));
   };
 
@@ -142,12 +144,13 @@ export default function AbonnementSection() {
                           </p>
                           <button
                             type="button"
-                            onClick={() =>
-                              startReactivate(async () => {
-                                await requestReactivateSubscription();
-                                reload();
-                              })
-                            }
+                            onClick={async () => {
+                              if (reactivatePending) return;
+                              setReactivatePending(true);
+                              await requestReactivateSubscription();
+                              setReactivatePending(false);
+                              reload();
+                            }}
                             disabled={reactivatePending}
                             className="text-sm text-sapin/40 hover:text-sapin/70 transition-colors underline underline-offset-2 text-left w-fit"
                           >
