@@ -18,7 +18,7 @@ const CartContext = createContext<CartContextType>({
 });
 
 const STORAGE_KEY = "recolteo_cart";
-const TTL_MS = 7 * 24 * 60 * 60 * 1000;
+const TTL_MS = 2 * 60 * 60 * 1000;
 const subscribers = new Set<() => void>();
 
 function subscribe(callback: () => void) {
