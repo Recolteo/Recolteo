@@ -3,6 +3,7 @@ import { redirect, notFound } from "next/navigation";
 import { createClient } from "@/src/lib/supabase/server";
 import Hero from "@/src/components/sections/Hero";
 import LotEditForm, { type LotEditData } from "./_components/LotEditForm";
+import type { Horaire } from "@/src/components/ui/cards/LotCard";
 
 export const metadata: Metadata = {
   title: "Modifier un lot — Récoltéo",
@@ -10,7 +11,7 @@ export const metadata: Metadata = {
 };
 
 const LOT_EDIT_FIELDS =
-  "id_lot, id_commercant, adresse_recup, category, nature, quantity, dlc, montant_chiffre, montant_lettre, instructions";
+  "id_lot, id_commercant, adresse_recup, category, nature, quantity, dlc, montant_chiffre, montant_lettre, instructions, horaires";
 
 export default async function ModifierLotPage({
   params,
@@ -51,6 +52,19 @@ export default async function ModifierLotPage({
   const { data: lot } = await lotQuery.maybeSingle();
   if (!lot) notFound();
 
+  const lotData: LotEditData = {
+    id_lot: lot.id_lot,
+    adresse_recup: lot.adresse_recup,
+    category: lot.category,
+    nature: lot.nature,
+    quantity: lot.quantity,
+    dlc: lot.dlc,
+    montant_chiffre: lot.montant_chiffre,
+    montant_lettre: lot.montant_lettre,
+    instructions: lot.instructions,
+    horaires: Array.isArray(lot.horaires) ? (lot.horaires as Horaire[]) : [],
+  };
+
   return (
     <main>
       <Hero
@@ -66,7 +80,7 @@ export default async function ModifierLotPage({
         secondaryButtonHref="/lots/declarer-lot"
       />
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
-        <LotEditForm lot={lot as LotEditData} />
+        <LotEditForm lot={lotData} />
       </div>
     </main>
   );

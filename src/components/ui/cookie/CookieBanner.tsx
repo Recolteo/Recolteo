@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { motion } from "motion/react";
 import Button from "@/src/components/ui/primitives/Button";
 
@@ -28,7 +29,13 @@ export default function CookieBanner({
           <p className="text-sapin/60 text-xs leading-relaxed">
             Récoltéo utilise des cookies pour le bon fonctionnement du site et,
             avec votre accord, pour analyser l'audience. Aucun cookie
-            publicitaire n'est utilisé.
+            publicitaire n'est utilisé.{" "}
+            <Link
+              href="/politique-de-confidentialite"
+              className="underline hover:text-sapin transition-colors"
+            >
+              En savoir plus
+            </Link>
           </p>
         </div>
         <div className="flex flex-wrap gap-2 shrink-0">

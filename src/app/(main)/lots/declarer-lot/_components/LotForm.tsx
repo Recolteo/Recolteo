@@ -6,16 +6,22 @@ import Button from "@/src/components/ui/primitives/Button";
 import CommercantSection from "./CommercantSection";
 import LotDetailsSection from "./LotDetailsSection";
 import ValeurSection from "./ValeurSection";
+import HorairesSection from "./HorairesSection";
 import type { LotFormProps, Merchant } from "./types";
 
 export default function LotForm(props: LotFormProps) {
-  const [state, action, pending] = useActionState(declarerLot, {} as LotActionState);
+  const [state, action, pending] = useActionState(
+    declarerLot,
+    {} as LotActionState,
+  );
 
   const isAdmin = props.mode === "admin";
   const initialMerchant = isAdmin
     ? ((props as { mode: "admin"; merchants: Merchant[] }).merchants[0] ?? null)
     : null;
-  const [selectedMerchant, setSelectedMerchant] = useState<Merchant | null>(initialMerchant);
+  const [selectedMerchant, setSelectedMerchant] = useState<Merchant | null>(
+    initialMerchant,
+  );
   const [categoryValue, setCategoryValue] = useState("");
 
   const merchantId = isAdmin
@@ -34,7 +40,11 @@ export default function LotForm(props: LotFormProps) {
 
       <CommercantSection
         isAdmin={isAdmin}
-        merchants={isAdmin ? (props as { mode: "admin"; merchants: Merchant[] }).merchants : []}
+        merchants={
+          isAdmin
+            ? (props as { mode: "admin"; merchants: Merchant[] }).merchants
+            : []
+        }
         selectedMerchant={selectedMerchant}
         onMerchantChange={setSelectedMerchant}
         merchantId={merchantId}
@@ -52,6 +62,10 @@ export default function LotForm(props: LotFormProps) {
       <div className="h-px bg-sapin/8" />
 
       <ValeurSection />
+
+      <div className="h-px bg-sapin/8" />
+
+      <HorairesSection />
 
       {state.error && (
         <p className="text-sm text-peach font-semibold bg-peach/8 border border-peach/20 rounded-xl px-4 py-3">

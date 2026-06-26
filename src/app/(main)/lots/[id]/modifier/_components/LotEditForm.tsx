@@ -4,6 +4,8 @@ import { useActionState, useState } from "react";
 import { modifierLot, type LotEditState } from "../actions";
 import Input from "@/src/components/ui/primitives/Input";
 import Button from "@/src/components/ui/primitives/Button";
+import HorairesSection from "@/src/app/(main)/lots/declarer-lot/_components/HorairesSection";
+import type { Horaire } from "@/src/components/ui/cards/LotCard";
 
 const CATEGORY_OPTIONS = [
   "Invendus alimentaires",
@@ -27,6 +29,7 @@ export interface LotEditData {
   montant_chiffre: number;
   montant_lettre: string;
   instructions: string | null;
+  horaires: Horaire[];
 }
 
 export default function LotEditForm({ lot }: { lot: LotEditData }) {
@@ -183,6 +186,10 @@ export default function LotEditForm({ lot }: { lot: LotEditData }) {
           </div>
         </div>
       </section>
+
+      <div className="h-px bg-sapin/8" />
+
+      <HorairesSection defaultValue={lot.horaires} />
 
       {state.error && (
         <p className="text-sm text-peach font-semibold bg-peach/8 border border-peach/20 rounded-xl px-4 py-3">

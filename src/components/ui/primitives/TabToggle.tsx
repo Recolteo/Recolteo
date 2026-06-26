@@ -39,7 +39,7 @@ export default function TabToggle({
           key={tab.value}
           type="button"
           onClick={() => onChange(tab.value)}
-          className={`relative z-10 py-2.5 rounded-xl text-sm font-semibold transition-colors duration-300 ${
+          className={`relative z-10 py-2.5 rounded-xl text-[10px] sm:text-sm font-semibold transition-colors duration-300 ${
             fullWidth ? "flex-1 px-2" : "px-5"
           } ${active === tab.value ? "text-cream" : "text-sapin"}`}
         >

@@ -6,7 +6,7 @@ import Reveal from "@/src/components/animations/Reveal";
 import AdminStatsBar from "./AdminStatsBar";
 import AdminProfileCard from "./AdminProfileCard";
 import AdminEmptyState from "./AdminEmptyState";
-import Pagination from "./Pagination";
+import Pagination from "@/src/components/ui/primitives/Pagination";
 import { adminNavigate } from "./adminNavigate";
 import type { AdminFilter, AdminFiltreProps } from "./types";
 
@@ -110,10 +110,8 @@ export default function AdminFiltre({
             {filter === "commercant" && (
               <Pagination
                 page={page}
-                total={commercantsTotal}
-                pageSize={pageSize}
-                onPrev={() => go("commercant", page - 1)}
-                onNext={() => go("commercant", page + 1)}
+                totalPages={Math.ceil(commercantsTotal / pageSize)}
+                goToPage={(p) => go("commercant", p)}
               />
             )}
           </motion.section>
@@ -146,7 +144,6 @@ export default function AdminFiltre({
                   details={[
                     { label: "RNA", value: a.rna },
                     { label: "Type", value: a.type_asso },
-                    { label: "Rayon d'action", value: `${a.rayon_action} km` },
                     { label: "Adresse", value: a.adresse },
                   ]}
                   createdAt={a.created_at}
@@ -156,10 +153,8 @@ export default function AdminFiltre({
             {filter === "association" && (
               <Pagination
                 page={page}
-                total={associationsTotal}
-                pageSize={pageSize}
-                onPrev={() => go("association", page - 1)}
-                onNext={() => go("association", page + 1)}
+                totalPages={Math.ceil(associationsTotal / pageSize)}
+                goToPage={(p) => go("association", p)}
               />
             )}
           </motion.section>
@@ -174,10 +169,8 @@ export default function AdminFiltre({
           >
             <Pagination
               page={page}
-              total={Math.max(commercantsTotal, associationsTotal)}
-              pageSize={pageSize}
-              onPrev={() => go("all", page - 1)}
-              onNext={() => go("all", page + 1)}
+              totalPages={Math.ceil(Math.max(commercantsTotal, associationsTotal) / pageSize)}
+              goToPage={(p) => go("all", p)}
             />
           </motion.div>
         )}

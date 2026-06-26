@@ -3,13 +3,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/src/lib/supabase/server";
 import { createAdminClient } from "@/src/lib/supabase/admin";
-import type { DocType } from "@/src/lib/supabase/documents-types";
-
-const DB_COL: Record<DocType, "rib" | "kbis" | "piece_identite"> = {
-  rib: "rib",
-  kbis: "kbis",
-  identite: "piece_identite",
-};
+import { notifyAdminDocumentsReady } from "@/src/lib/email";
 
 async function getEntityContext() {
   const supabase = await createClient();
@@ -35,42 +29,39 @@ async function getEntityContext() {
   return null;
 }
 
-export async function syncDocUpload(type: DocType, path: string) {
+export async function notifyDocumentsModified(): Promise<{ success: boolean; error?: string }> {
   const ctx = await getEntityContext();
-  if (!ctx) return;
+  if (!ctx) return { success: false, error: "Contexte introuvable." };
   const { admin, entityId, entityType } = ctx;
-  const col = DB_COL[type];
 
-  const { data: existing, error: selectError } = await admin
+  const { data: doc } = await admin
     .from("document")
-    .select("id_document")
+    .select("rib, kbis, piece_identite, notification_sent")
     .eq("id_entity", entityId)
     .eq("type_entity", entityType)
     .maybeSingle();
 
-  if (selectError) return;
+  if (!doc?.rib || !doc.kbis || !doc.piece_identite)
+    return { success: false, error: "Les 3 documents doivent être déposés avant de confirmer." };
 
-  if (existing) {
-    await admin.from("document").update({ [col]: path }).eq("id_document", existing.id_document);
-  } else {
-    await admin.from("document").insert({
-      id_entity: entityId,
-      type_entity: entityType,
-      rib: col === "rib" ? path : "",
-      kbis: col === "kbis" ? path : "",
-      piece_identite: col === "piece_identite" ? path : "",
-    });
-  }
-}
+  if (doc.notification_sent)
+    return { success: false, error: "L'équipe a déjà été notifiée." };
 
-export async function syncDocDelete(type: DocType) {
-  const ctx = await getEntityContext();
-  if (!ctx) return;
-  const { admin, entityId, entityType } = ctx;
+  const { data: entityData } = await (entityType === "commercant"
+    ? admin.from("commercant").select("name_entreprise").eq("id_commercant", entityId).maybeSingle()
+    : admin.from("association").select("name_entreprise").eq("id_association", entityId).maybeSingle());
+
+  await notifyAdminDocumentsReady({
+    nameEntreprise: entityData?.name_entreprise ?? `${entityType}#${entityId}`,
+    role: entityType,
+    isModification: true,
+  });
 
   await admin
     .from("document")
-    .update({ [DB_COL[type]]: "" })
+    .update({ notification_sent: true })
     .eq("id_entity", entityId)
     .eq("type_entity", entityType);
+
+  return { success: true };
 }

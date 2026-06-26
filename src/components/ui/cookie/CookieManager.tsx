@@ -1,23 +1,28 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useState, useSyncExternalStore, useEffect } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Cookie } from "@deemlol/next-icons";
 import {
   readCookieConsent,
   writeCookieConsent,
   DEFAULT_CONSENT,
+  registerOpenPanel,
   type CookieConsent,
 } from "@/src/lib/cookie-consent";
 import CookieBanner from "@/src/components/ui/cookie/CookieBanner";
 import CookiePanel from "@/src/components/ui/cookie/CookiePanel";
 
-const subscribe = () => () => {};
+const subscribe = () => () => { };
 
 type Internal = { consent: CookieConsent; initialized: boolean };
 
 export default function CookieManager() {
-  const isClient = useSyncExternalStore(subscribe, () => true, () => false);
+  const isClient = useSyncExternalStore(
+    subscribe,
+    () => true,
+    () => false,
+  );
 
   const [{ consent, initialized }, setInternal] = useState<Internal>({
     consent: DEFAULT_CONSENT,
@@ -28,6 +33,8 @@ export default function CookieManager() {
   if (isClient && !initialized) {
     setInternal({ consent: readCookieConsent(), initialized: true });
   }
+
+  useEffect(() => registerOpenPanel(() => setPanelOpen(true)), []);
 
   if (!isClient) return null;
 
@@ -54,7 +61,7 @@ export default function CookieManager() {
             whileHover={{ scale: 1.1 }}
             onClick={() => setPanelOpen(true)}
             aria-label="Gérer mes préférences cookies"
-            className="fixed left-4 bottom-6 z-40 w-12 h-12 rounded-full bg-lime text-sapin border border-sapin shadow-[4px_4px_0_0_#04251c] flex items-center justify-center"
+            className="fixed left-4 bottom-6 z-40  w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-lime text-sapin border border-sapin shadow-[4px_4px_0_0_#04251c] flex items-center justify-center"
           >
             <Cookie size={22} />
           </motion.button>
@@ -66,10 +73,22 @@ export default function CookieManager() {
           <CookieBanner
             key="banner"
             onAcceptAll={() =>
-              persist({ analytiques: true, fonctionnels: true, consented: true })
+              persist({
+                analytiques: true,
+                fonctionnels: true,
+                geolocalisation: true,
+                consented: true,
+                consentedAt: null,
+              })
             }
             onRejectAll={() =>
-              persist({ analytiques: false, fonctionnels: false, consented: true })
+              persist({
+                analytiques: false,
+                fonctionnels: false,
+                geolocalisation: false,
+                consented: true,
+                consentedAt: null,
+              })
             }
             onCustomize={() => setPanelOpen(true)}
           />
@@ -83,10 +102,22 @@ export default function CookieManager() {
             draft={consent}
             onDraftChange={autoSave}
             onAcceptAll={() =>
-              persist({ analytiques: true, fonctionnels: true, consented: true })
+              persist({
+                analytiques: true,
+                fonctionnels: true,
+                geolocalisation: true,
+                consented: true,
+                consentedAt: null,
+              })
             }
             onRejectAll={() =>
-              persist({ analytiques: false, fonctionnels: false, consented: true })
+              persist({
+                analytiques: false,
+                fonctionnels: false,
+                geolocalisation: false,
+                consented: true,
+                consentedAt: null,
+              })
             }
             onClose={() => setPanelOpen(false)}
           />

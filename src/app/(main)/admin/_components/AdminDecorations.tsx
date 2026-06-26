@@ -18,8 +18,8 @@ export default function AdminDecorations() {
     >
       <motion.div
         className="absolute top-6 -left-2 sm:top-10 sm:left-[1%] lg:left-[5%] w-12 sm:w-16 lg:w-20 opacity-30"
-        initial={{ opacity: 0, x: -60, rotate: -30 }}
-        whileInView={{ opacity: 0.3, x: 0, rotate: -15 }}
+        initial={{ opacity: 0, x: -80, rotate: -30 }}
+        whileInView={{ opacity: 0.3, x: -40, rotate: -15 }}
         viewport={{ once: true, amount: 0.1 }}
         transition={{ ...SPRING, delay: 0.1 }}
       >

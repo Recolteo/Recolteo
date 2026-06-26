@@ -47,7 +47,7 @@ export default function AdminStatsBar({
       >
         <div className={`flex items-center gap-2 ${activeFilter === "commercant" ? "text-peach" : "text-peach/70"}`}>
           <ShoppingBag size={20} />
-          <span className="text-sm font-semibold uppercase tracking-wide">Commerçants</span>
+          <span className="text-[10px] font-semibold uppercase tracking-wide -translate-x-3.5 lg:translate-x-1 sm:text-sm">Commerçants</span>
         </div>
         <p className={`font-black text-2xl sm:text-3xl leading-none ${activeFilter === "commercant" ? "text-peach" : "text-peach/70"}`}>
           {commercantsCount}
@@ -64,7 +64,7 @@ export default function AdminStatsBar({
       >
         <div className={`flex items-center gap-2 ${activeFilter === "association" ? "text-sapin" : "text-sapin/60"}`}>
           <Users size={20} />
-          <span className="text-sm font-semibold uppercase tracking-wide">Associations</span>
+          <span className="text-[10px] font-semibold uppercase tracking-wide -translate-x-3 lg:translate-x-1 sm:text-sm">Associations</span>
         </div>
         <p className={`font-black text-2xl sm:text-3xl leading-none ${activeFilter === "association" ? "text-sapin" : "text-sapin/70"}`}>
           {associationsCount}

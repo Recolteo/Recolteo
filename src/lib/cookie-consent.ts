@@ -1,13 +1,17 @@
 export interface CookieConsent {
   analytiques: boolean;
   fonctionnels: boolean;
+  geolocalisation: boolean;
   consented: boolean;
+  consentedAt: string | null;
 }
 
 export const DEFAULT_CONSENT: CookieConsent = {
   analytiques: false,
   fonctionnels: false,
+  geolocalisation: false,
   consented: false,
+  consentedAt: null,
 };
 
 const KEY = "_rc";
@@ -24,12 +28,14 @@ function parseRawCookie(raw: string): string | null {
 }
 
 function isValidConsent(value: unknown): value is CookieConsent {
+  const v = value as Record<string, unknown>;
   return (
     typeof value === "object" &&
     value !== null &&
-    typeof (value as Record<string, unknown>).analytiques === "boolean" &&
-    typeof (value as Record<string, unknown>).fonctionnels === "boolean" &&
-    typeof (value as Record<string, unknown>).consented === "boolean"
+    typeof v.analytiques === "boolean" &&
+    typeof v.fonctionnels === "boolean" &&
+    typeof v.geolocalisation === "boolean" &&
+    typeof v.consented === "boolean"
   );
 }
 
@@ -42,11 +48,35 @@ export function readCookieConsent(): CookieConsent {
     return {
       analytiques: parsed.analytiques,
       fonctionnels: parsed.fonctionnels,
+      geolocalisation: parsed.geolocalisation,
       consented: parsed.consented,
+      consentedAt: typeof parsed.consentedAt === "string" ? parsed.consentedAt : null,
     };
   } catch {
     return DEFAULT_CONSENT;
   }
+}
+
+const CONSENT_CHANGE_EVENT =
+  process.env.NEXT_PUBLIC_CONSENT_EVENT ?? "cc_change";
+
+export function onConsentChange(callback: () => void): void {
+  window.addEventListener(CONSENT_CHANGE_EVENT, callback);
+}
+
+export function offConsentChange(callback: () => void): void {
+  window.removeEventListener(CONSENT_CHANGE_EVENT, callback);
+}
+
+let _openPanel: (() => void) | null = null;
+
+export function registerOpenPanel(fn: () => void): () => void {
+  _openPanel = fn;
+  return () => { _openPanel = null; };
+}
+
+export function openCookiePanel(): void {
+  _openPanel?.();
 }
 
 export function writeCookieConsent(consent: CookieConsent): void {
@@ -54,7 +84,9 @@ export function writeCookieConsent(consent: CookieConsent): void {
     JSON.stringify({
       analytiques: consent.analytiques,
       fonctionnels: consent.fonctionnels,
+      geolocalisation: consent.geolocalisation,
       consented: consent.consented,
+      consentedAt: new Date().toISOString(),
     })
   );
   const secure =
@@ -62,4 +94,5 @@ export function writeCookieConsent(consent: CookieConsent): void {
       ? "; Secure"
       : "";
   document.cookie = `${KEY}=${value}; Max-Age=${MAX_AGE}; Path=/; SameSite=Strict${secure}`;
+  window.dispatchEvent(new Event(CONSENT_CHANGE_EVENT));
 }

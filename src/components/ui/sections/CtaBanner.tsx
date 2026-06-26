@@ -9,7 +9,8 @@ interface CtaBannerProps {
   heading: string;
   subheading: string;
   buttonLabel: string;
-  buttonHref: string;
+  buttonHref?: string;
+  onButtonClick?: () => void;
 }
 
 export default function CtaBanner({
@@ -17,6 +18,7 @@ export default function CtaBanner({
   subheading,
   buttonLabel,
   buttonHref,
+  onButtonClick,
 }: CtaBannerProps) {
   return (
     <div className="relative bg-sapin border border-sapin rounded-2xl shadow-[4px_4px_0_0_#04251c] px-8 py-12 sm:px-14 flex flex-col sm:flex-row items-center justify-between gap-6 overflow-hidden">
@@ -50,7 +52,12 @@ export default function CtaBanner({
         </p>
         <p className="text-cream text-base">{subheading}</p>
       </div>
-      <Button label={buttonLabel} href={buttonHref} variant="lime" />
+      <Button
+        label={buttonLabel}
+        href={buttonHref}
+        onClick={onButtonClick}
+        variant="lime"
+      />
     </div>
   );
 }

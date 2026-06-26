@@ -1,21 +1,4 @@
-const ROLE_LABEL = {
-  admin: "Administrateur",
-  commercant: "Commerçant",
-  association: "Association",
-} as const;
-
-const ROLE_CLASS = {
-  admin: "bg-sapin/10 text-sapin",
-  commercant: "bg-peach/10 text-peach border border-peach/20",
-  association: "bg-lime/30 text-sapin border border-lime/40",
-} as const;
-
-interface ProfilHeaderProps {
-  nom: string;
-  role: "commercant" | "association" | "admin";
-}
-
-export default function ProfilHeader({ nom, role }: ProfilHeaderProps) {
+export default function ProfilHeader() {
   return (
     <div>
       <h1 className="text-sapin font-black">

@@ -1,3 +1,5 @@
+"use client";
+
 interface SelectOption {
   value: string;
   label: string;
@@ -5,12 +7,14 @@ interface SelectOption {
 
 interface SelectProps {
   id: string;
-  name: string;
+  name?: string;
   label: string;
   options: SelectOption[];
   required?: boolean;
   placeholder?: string;
   defaultValue?: string;
+  value?: string;
+  onChange?: (value: string) => void;
 }
 
 export default function Select({
@@ -21,7 +25,11 @@ export default function Select({
   required,
   placeholder,
   defaultValue,
+  value,
+  onChange,
 }: SelectProps) {
+  const controlled = value !== undefined && onChange !== undefined;
+
   return (
     <div className="flex flex-col gap-1.5">
       <label htmlFor={id} className="text-sm font-semibold text-sapin">
@@ -32,7 +40,9 @@ export default function Select({
         id={id}
         name={name}
         required={required}
-        defaultValue={defaultValue ?? ""}
+        {...(controlled
+          ? { value, onChange: (e) => onChange(e.target.value) }
+          : { defaultValue: defaultValue ?? "" })}
         className="px-4 py-3 rounded-xl border-2 border-sapin/20 bg-white focus:border-sapin focus:outline-none transition-colors text-sm font-medium text-sapin"
       >
         {placeholder && (

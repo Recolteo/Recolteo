@@ -1,11 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import LotCard, { type Lot } from "../ui/cards/LotCard";
 import Pagination from "../ui/primitives/Pagination";
-
-const PAGE_SIZE = 20;
 
 export default function CatalogueGrid({
   lots,
@@ -14,9 +12,22 @@ export default function CatalogueGrid({
   lots: Lot[];
   showCartButton?: boolean;
 }) {
+  const [pageSize, setPageSize] = useState(20);
   const [page, setPage] = useState(1);
-  const totalPages = Math.ceil(lots.length / PAGE_SIZE);
-  const pageLots = lots.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 640px)");
+    const update = () => {
+      setPageSize(mq.matches ? 20 : 10);
+      setPage(1);
+    };
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+
+  const totalPages = Math.ceil(lots.length / pageSize);
+  const pageLots = lots.slice((page - 1) * pageSize, page * pageSize);
 
   const goToPage = (p: number) => {
     setPage(p);
@@ -29,7 +40,7 @@ export default function CatalogueGrid({
 
   return (
     <div className="flex flex-col gap-8">
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
         {pageLots.map((lot, i) => (
           <motion.div
             key={`p${page}-${lot.id_lot}`}

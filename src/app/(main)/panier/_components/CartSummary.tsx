@@ -3,11 +3,13 @@ import Btn from "@/src/components/ui/primitives/Button";
 interface CartSummaryProps {
   itemCount: number;
   totalPrice: number;
+  onReserver: () => void;
 }
 
 export default function CartSummary({
   itemCount,
   totalPrice,
+  onReserver,
 }: CartSummaryProps) {
   const cagnotte = totalPrice * 0.02;
   const formatEur = (v: number) =>
@@ -40,8 +42,9 @@ export default function CartSummary({
 
         <Btn
           label="Réserver les lots"
-          href="#"
+          onClick={onReserver}
           variant="sapin"
+          showArrow={false}
           className="w-full justify-center"
         />
         <p className="text-xs text-sapin/35 mt-3 text-center leading-relaxed">

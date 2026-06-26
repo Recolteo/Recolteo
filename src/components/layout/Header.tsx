@@ -5,6 +5,14 @@ import Link from "next/link";
 import { Menu, X, ShoppingBag } from "@deemlol/next-icons";
 import Btn from "../ui/primitives/Button";
 import { useCart } from "@/src/lib/cart-context";
+import Image from "next/image";
+import Logo from "@/src/asset/logo.webp";
+
+const adminSubLinks = [
+  { label: "Validations", href: "/admin/validation" },
+  { label: "Structures", href: "/admin/structures" },
+  { label: "Collectes", href: "/admin/collectes" },
+];
 
 type UserInfo = {
   nom: string;
@@ -36,23 +44,28 @@ function CartButton() {
 
 export default function Header({ user }: HeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
-
-  const adminLink = { label: "Admin", href: "/admin" };
-  const links = user?.role === "admin" ? [...navLinks, adminLink] : navLinks;
+  const [adminOpen, setAdminOpen] = useState(false);
 
   return (
     <div className="fixed top-3 left-0 right-0 z-50 px-4">
-      <header className="max-w-7xl mx-auto bg-cream/90 backdrop-blur-sm border-2 border-sapin/10 rounded-2xl shadow-sm overflow-hidden">
+      <header className="max-w-7xl mx-auto bg-cream/90 backdrop-blur-sm border-2 border-sapin/10 rounded-2xl shadow-sm">
         <div className="px-4 sm:px-6 h-14 flex items-center justify-between gap-4">
           <Link
             href="/"
             className="font-bold text-2xl text-sapin tracking-tight hover:opacity-80 transition-opacity shrink-0"
           >
+            <Image
+              src={Logo}
+              alt="Logo Récoltéo"
+              width={32}
+              height={32}
+              className="inline-block mr-1"
+            />
             Récoltéo
           </Link>
 
           <nav className="hidden md:flex items-center gap-0.5">
-            {links.map(({ label, href }) => (
+            {navLinks.map(({ label, href }) => (
               <Link
                 key={href}
                 href={href}
@@ -61,6 +74,36 @@ export default function Header({ user }: HeaderProps) {
                 {label}
               </Link>
             ))}
+            {user?.role === "admin" && (
+              <div
+                className="relative"
+                onMouseEnter={() => setAdminOpen(true)}
+                onMouseLeave={() => setAdminOpen(false)}
+              >
+                <Link
+                  href="/admin"
+                  className="px-3.5 py-1.5 font-bold text-sapin hover:bg-sapin/10 rounded-xl transition-all duration-150 flex items-center gap-1"
+                >
+                  Admin <span className="text-xs opacity-50">▾</span>
+                </Link>
+                {adminOpen && (
+                  <div className="absolute top-full left-0 pt-1.5 z-20">
+                    <div className="bg-cream border-2 border-sapin/10 rounded-xl shadow-[4px_4px_0_0_rgba(6,87,63,0.08)] overflow-hidden min-w-42.5">
+                      {adminSubLinks.map(({ label, href }) => (
+                        <Link
+                          key={href}
+                          href={href}
+                          onClick={() => setAdminOpen(false)}
+                          className="block px-4 py-2.5 text-sm font-bold text-sapin hover:bg-sapin/10 transition-all duration-150"
+                        >
+                          {label}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </nav>
 
           <div className="flex items-center gap-2 shrink-0">
@@ -101,8 +144,8 @@ export default function Header({ user }: HeaderProps) {
         </div>
 
         {menuOpen && (
-          <div className="md:hidden border-t-2 border-sapin/10 px-4 pb-4 pt-3 flex flex-col gap-1">
-            {links.map(({ label, href }) => (
+          <div className="md:hidden border-t-2 border-sapin/10 px-4 pb-4 pt-3 flex flex-col gap-1 rounded-b-2xl overflow-hidden">
+            {navLinks.map(({ label, href }) => (
               <Link
                 key={href}
                 href={href}
@@ -112,6 +155,23 @@ export default function Header({ user }: HeaderProps) {
                 {label}
               </Link>
             ))}
+            {user?.role === "admin" && (
+              <>
+                <p className="px-3.5 pt-2 pb-0.5 text-[10px] font-bold text-sapin/40 uppercase tracking-widest">
+                  Admin
+                </p>
+                {adminSubLinks.map(({ label, href }) => (
+                  <Link
+                    key={href}
+                    href={href}
+                    onClick={() => setMenuOpen(false)}
+                    className="pl-6 pr-3.5 py-2.5 text-sm font-bold text-sapin hover:bg-sapin/10 rounded-xl transition-all duration-150"
+                  >
+                    {label}
+                  </Link>
+                ))}
+              </>
+            )}
             <div className="mt-2 pt-3 border-t border-sapin/10">
               {user ? (
                 <Link

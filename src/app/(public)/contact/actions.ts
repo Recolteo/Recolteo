@@ -28,9 +28,14 @@ export async function sendContactEmail(
   const type_demande = (formData.get("type_demande") as string)?.trim();
   const sujet = (formData.get("sujet") as string)?.trim();
   const message = (formData.get("message") as string)?.trim();
+  const rgpd = formData.get("rgpd");
 
   if (!nom || !email || !type_demande || !message) {
     return { error: "Veuillez remplir tous les champs obligatoires." };
+  }
+
+  if (!rgpd) {
+    return { error: "Vous devez accepter la politique de confidentialité pour envoyer votre message." };
   }
 
   const typeLabels: Record<string, string> = {

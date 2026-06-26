@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Btn from "../ui/primitives/Button";
+import Button from "../ui/primitives/Button";
 import Image from "next/image";
 import footerIllustration from "@/src/asset/footer.svg";
 
@@ -47,7 +47,7 @@ export default function Footer() {
               </h2>
             </div>
             <div className="self-start sm:self-auto">
-              <Btn label="Créer un compte" href="/login" variant="lime" />
+              <Button label="Contactez-nous" href="/contact" variant="lime" />
             </div>
           </div>
         </div>

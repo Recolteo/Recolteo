@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
+import Link from "next/link";
+import { useActionState, useState } from "react";
 import {
   sendContactEmail,
   type ContactState,
@@ -16,6 +17,8 @@ export default function ContactForm() {
     sendContactEmail,
     {} as ContactState,
   );
+  const [rgpdChecked, setRgpdChecked] = useState(false);
+  const [rgpdError, setRgpdError] = useState(false);
 
   if (state.success) {
     return (
@@ -40,7 +43,16 @@ export default function ContactForm() {
     <section className="w-full px-4 sm:px-6 lg:px-8 py-16">
       <Reveal>
         <div className="max-w-xl mx-auto">
-          <form action={action} className="flex flex-col gap-5">
+          <form
+            action={action}
+            className="flex flex-col gap-5"
+            onSubmit={(e) => {
+              if (!rgpdChecked) {
+                e.preventDefault();
+                setRgpdError(true);
+              }
+            }}
+          >
             <div className="grid sm:grid-cols-2 gap-4">
               <Input
                 id="nom"
@@ -105,6 +117,33 @@ export default function ContactForm() {
               placeholder="Décrivez votre demande…"
               rows={6}
             />
+
+            <div className="flex flex-col gap-1">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="rgpd"
+                  checked={rgpdChecked}
+                  onChange={(e) => {
+                    setRgpdChecked(e.target.checked);
+                    if (e.target.checked) setRgpdError(false);
+                  }}
+                  className={`mt-0.5 h-4 w-4 shrink-0 rounded cursor-pointer accent-sapin border ${rgpdError ? "border-peach" : "border-sapin/30"}`}
+                />
+                <span className={`text-xs leading-relaxed ${rgpdError ? "text-peach" : "text-sapin/60"}`}>
+                  J&apos;accepte que mes données soient utilisées pour traiter ma demande, conformément à la{" "}
+                  <Link href="/politique-de-confidentialite" className="underline hover:opacity-80 transition-opacity">
+                    politique de confidentialité
+                  </Link>{" "}
+                  de Récoltéo (Art. 6.1.f RGPD).
+                </span>
+              </label>
+              {rgpdError && (
+                <p className="text-xs text-peach font-medium pl-7">
+                  Vous devez accepter la politique de confidentialité pour continuer.
+                </p>
+              )}
+            </div>
 
             {state.error && (
               <p className="text-sm text-peach font-semibold bg-peach/8 border border-peach/20 rounded-xl px-4 py-3">

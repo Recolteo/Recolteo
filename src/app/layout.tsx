@@ -33,23 +33,53 @@ export default async function RootLayout({
     data: { user },
   } = await supabase.auth.getUser();
 
-  let userInfo: { nom: string; role: "commercant" | "association" | "admin" } | undefined;
+  let userInfo:
+    | { nom: string; role: "commercant" | "association" | "admin" }
+    | undefined;
 
   if (user) {
-    const [{ data: adminRow }, { data: commercant }, { data: association }, { data: userRow }] =
-      await Promise.all([
-        supabase.from("administrateur").select("nom, prenom").maybeSingle(),
-        supabase.from("commercant").select("name_entreprise").maybeSingle(),
-        supabase.from("association").select("name_entreprise").maybeSingle(),
-        supabase.from("user").select("nom").maybeSingle(),
-      ]);
+    const { data: adminRow } = await supabase
+      .from("administrateur")
+      .select("nom, prenom")
+      .maybeSingle();
 
     if (adminRow) {
       userInfo = { nom: `${adminRow.prenom} ${adminRow.nom}`, role: "admin" };
-    } else if (commercant) {
-      userInfo = { nom: userRow?.nom ?? commercant.name_entreprise, role: "commercant" };
-    } else if (association) {
-      userInfo = { nom: userRow?.nom ?? association.name_entreprise, role: "association" };
+    } else {
+      const { data: userRow } = await supabase
+        .from("user")
+        .select("id_user, nom")
+        .eq("auth_id", user.id)
+        .maybeSingle();
+
+      if (userRow) {
+        const [{ data: commercant }, { data: association }] = await Promise.all(
+          [
+            supabase
+              .from("commercant")
+              .select("name_entreprise")
+              .eq("id_user", userRow.id_user)
+              .maybeSingle(),
+            supabase
+              .from("association")
+              .select("name_entreprise")
+              .eq("id_user", userRow.id_user)
+              .maybeSingle(),
+          ],
+        );
+
+        if (commercant) {
+          userInfo = {
+            nom: userRow.nom ?? commercant.name_entreprise,
+            role: "commercant",
+          };
+        } else if (association) {
+          userInfo = {
+            nom: userRow.nom ?? association.name_entreprise,
+            role: "association",
+          };
+        }
+      }
     }
   }
 

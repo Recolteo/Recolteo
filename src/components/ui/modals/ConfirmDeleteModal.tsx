@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useEffect, useTransition } from "react";
 import { Trash2, X } from "@deemlol/next-icons";
 import Button from "@/src/components/ui/primitives/Button";
 
@@ -17,6 +17,11 @@ export default function ConfirmDeleteModal({
 }: ConfirmDeleteModalProps) {
   const [pending, startTransition] = useTransition();
 
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = ""; };
+  }, []);
+
   const handleConfirm = () => {
     startTransition(() => {
       onConfirm();
@@ -25,10 +30,9 @@ export default function ConfirmDeleteModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-cream/40 backdrop-blur-sm"
       onClick={onCancel}
     >
-      <div className="absolute inset-0 bg-sapin/40 backdrop-blur-sm" />
 
       <div
         className="relative z-10 w-full max-w-sm bg-white rounded-2xl border-2 border-sapin/10 shadow-[8px_8px_0_0_color-mix(in_srgb,var(--color-sapin)_15%,transparent)] overflow-hidden"

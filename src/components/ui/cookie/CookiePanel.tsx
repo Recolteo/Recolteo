@@ -37,8 +37,8 @@ export default function CookiePanel({
         transition={{ type: "spring", stiffness: 400, damping: 35 }}
         className="fixed inset-0 z-50 flex items-center justify-center p-4"
       >
-        <div className="bg-cream rounded-2xl w-full max-w-md shadow-2xl border border-sapin/10">
-          <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-sapin/10">
+        <div className="bg-cream rounded-2xl w-full max-w-md shadow-2xl border border-sapin/10 flex flex-col max-h-[90vh]">
+          <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-sapin/10 shrink-0">
             <h2 className="font-black text-sapin text-lg">
               Gestion des cookies
             </h2>
@@ -51,7 +51,7 @@ export default function CookiePanel({
             </button>
           </div>
 
-          <div className="px-6 py-2">
+          <div className="px-6 py-2 overflow-y-auto flex-1">
             <p className="text-sm text-sapin/60 leading-relaxed pt-2 pb-1">
               Choisissez les cookies que vous autorisez. Les modifications sont
               appliquées instantanément.
@@ -76,6 +76,12 @@ export default function CookiePanel({
               description="Mémorisent vos préférences pour améliorer votre expérience (filtres actifs, affichage). Aucune donnée transmise à des tiers."
               checked={draft.fonctionnels}
               onChange={(v) => onDraftChange({ ...draft, fonctionnels: v })}
+            />
+            <CookieCategory
+              label="Géolocalisation"
+              description="Permet aux associations de filtrer les lots par proximité géographique en géocodant leur adresse via l'API de la Base Adresse Nationale (data.gouv.fr). Aucune donnée de position GPS n'est collectée."
+              checked={draft.geolocalisation}
+              onChange={(v) => onDraftChange({ ...draft, geolocalisation: v })}
             />
           </div>
 

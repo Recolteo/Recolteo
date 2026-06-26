@@ -35,37 +35,32 @@ export async function getAdminAllDocuments(): Promise<UserDocEntry[]> {
   const commercantMap = new Map((commercants ?? []).map((c) => [c.id_commercant, c]));
   const associationMap = new Map((associations ?? []).map((a) => [a.id_association, a]));
 
-  const results = await Promise.all(
-    docs.map(async (doc) => {
-      const entity =
-        doc.type_entity === "commercant"
-          ? commercantMap.get(doc.id_entity)
-          : associationMap.get(doc.id_entity);
+  const results = docs.map((doc) => {
+    const entity =
+      doc.type_entity === "commercant"
+        ? commercantMap.get(doc.id_entity)
+        : associationMap.get(doc.id_entity);
 
-      const paths: [DocType, string | null][] = [
-        ["rib", doc.rib],
-        ["kbis", doc.kbis],
-        ["identite", doc.piece_identite],
-      ];
+    const paths: [DocType, string | null][] = [
+      ["rib", doc.rib],
+      ["kbis", doc.kbis],
+      ["identite", doc.piece_identite],
+    ];
 
-      const docEntries = await Promise.all(
-        paths
-          .filter(([, path]) => !!path)
-          .map(async ([type, path]) => {
-            const { data } = await admin.storage.from(BUCKET).createSignedUrl(path!, 3600);
-            if (!data?.signedUrl) return null;
-            return { type, url: data.signedUrl };
-          })
-      );
+    const docEntries = paths
+      .filter(([, path]) => !!path)
+      .map(([type, path]) => ({
+        type,
+        url: `/api/docs/admin?path=${encodeURIComponent(path!)}`,
+      }));
 
-      return {
-        authId: `${doc.type_entity}-${doc.id_entity}`,
-        nom: entity?.name_entreprise ?? `Entité #${doc.id_entity}`,
-        email: entity?.email ?? "",
-        docs: docEntries.filter((d): d is { type: DocType; url: string } => d !== null),
-      } satisfies UserDocEntry;
-    })
-  );
+    return {
+      authId: `${doc.type_entity}-${doc.id_entity}`,
+      nom: entity?.name_entreprise ?? `Entité #${doc.id_entity}`,
+      email: entity?.email ?? "",
+      docs: docEntries,
+    } satisfies UserDocEntry;
+  });
 
   return results.filter((r) => r.docs.length > 0);
 }

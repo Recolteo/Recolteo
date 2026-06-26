@@ -1,7 +1,45 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+const loginAttempts = new Map<string, { count: number; resetAt: number }>();
+const MAX_LOGIN_ATTEMPTS = 10;
+const LOGIN_WINDOW_MS = 15 * 60 * 1000;
+
+function isLoginRateLimited(request: NextRequest): boolean {
+  const ip =
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    request.headers.get("x-real-ip") ??
+    "unknown";
+  const now = Date.now();
+  const entry = loginAttempts.get(ip);
+  if (!entry || now > entry.resetAt) {
+    loginAttempts.set(ip, { count: 1, resetAt: now + LOGIN_WINDOW_MS });
+    return false;
+  }
+  entry.count += 1;
+  return entry.count > MAX_LOGIN_ATTEMPTS;
+}
+
 export async function middleware(request: NextRequest) {
+  if (
+    request.method === "POST" &&
+    request.nextUrl.pathname.startsWith("/login") &&
+    request.headers.has("next-action")
+  ) {
+    if (isLoginRateLimited(request)) {
+      return new NextResponse(
+        "Trop de tentatives. Réessayez dans 15 minutes.",
+        {
+          status: 429,
+          headers: {
+            "Retry-After": "900",
+            "Content-Type": "text/plain; charset=utf-8",
+          },
+        }
+      );
+    }
+  }
+
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(

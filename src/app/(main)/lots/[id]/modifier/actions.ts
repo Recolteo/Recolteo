@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/src/lib/supabase/server";
 import { createAdminClient } from "@/src/lib/supabase/admin";
+import type { Horaire } from "@/src/components/ui/cards/LotCard";
 
 export type LotEditState = {
   error?: string;
@@ -40,6 +41,18 @@ export async function modifierLot(
   ).trim();
   const category = categorySelect === "autre" ? categoryCustom : categorySelect;
 
+  const quantityRaw = parseFloat(formData.get("quantity") as string);
+  const montantRaw = parseFloat(formData.get("montant_chiffre") as string);
+  if (isNaN(quantityRaw) || quantityRaw <= 0) return { error: "Quantité invalide." };
+  if (isNaN(montantRaw) || montantRaw < 0) return { error: "Montant invalide." };
+
+  let horaires: Horaire[] = [];
+  try {
+    horaires = JSON.parse((formData.get("horaires") as string) || "[]") as Horaire[];
+  } catch {
+    horaires = [];
+  }
+
   let updateQuery = adminClient
     .from("lot")
     .update({
@@ -48,10 +61,11 @@ export async function modifierLot(
         ((formData.get("instructions") as string) || "").trim() || null,
       category,
       nature: (formData.get("nature") as string).trim(),
-      quantity: parseFloat(formData.get("quantity") as string),
+      quantity: quantityRaw,
       dlc: (formData.get("DLC") as string) || null,
-      montant_chiffre: parseFloat(formData.get("montant_chiffre") as string),
+      montant_chiffre: montantRaw,
       montant_lettre: (formData.get("montant_lettre") as string).trim(),
+      horaires,
     })
     .eq("id_lot", id);
 

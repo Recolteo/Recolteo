@@ -8,6 +8,7 @@ type EntityInfo =
       type_activity: string;
       forme_juridique: string;
       adresse: string;
+      code_postal: string | null;
     }
   | {
       role: "association";
@@ -16,8 +17,9 @@ type EntityInfo =
       tel: string;
       rna: string;
       type_asso: string;
-      rayon_action: number;
       adresse: string;
+      code_postal: string | null;
+      cagnotte: number;
     }
   | { role: "admin"; nom: string; prenom: string };
 
@@ -48,11 +50,18 @@ export default function InfoTab({ entityInfo }: { entityInfo: EntityInfo | null 
       </div>
     );
 
+  const adresseComplete = [
+    entityInfo.adresse,
+    entityInfo.code_postal,
+  ]
+    .filter(Boolean)
+    .join(" — ");
+
   const common = (
     <>
       <InfoRow label="Email" value={entityInfo.email} />
       <InfoRow label="Téléphone" value={entityInfo.tel} />
-      <InfoRow label="Adresse" value={entityInfo.adresse} />
+      <InfoRow label="Adresse" value={adresseComplete} />
     </>
   );
 
@@ -73,7 +82,10 @@ export default function InfoTab({ entityInfo }: { entityInfo: EntityInfo | null 
       {common}
       <InfoRow label="RNA" value={entityInfo.rna} />
       <InfoRow label="Type" value={entityInfo.type_asso} />
-      <InfoRow label="Rayon d'action" value={`${entityInfo.rayon_action} km`} />
+      <InfoRow
+        label="Cagnotte"
+        value={entityInfo.cagnotte.toLocaleString("fr-FR", { style: "currency", currency: "EUR" })}
+      />
     </div>
   );
 }

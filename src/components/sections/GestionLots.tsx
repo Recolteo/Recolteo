@@ -1,6 +1,10 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Reveal from "../animations/Reveal";
 import CatalogueDecorations from "../illustrations/CatalogueDecorations";
 import LotCardGestion from "../ui/cards/LotCardGestion";
+import Pagination from "../ui/primitives/Pagination";
 import type { Lot } from "../ui/cards/LotCard";
 
 interface GestionLotsProps {
@@ -9,6 +13,32 @@ interface GestionLotsProps {
 }
 
 export default function GestionLots({ lots, adminView = false }: GestionLotsProps) {
+  const [pageSize, setPageSize] = useState(20);
+  const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 640px)");
+    const update = () => {
+      setPageSize(mq.matches ? 20 : 10);
+      setPage(1);
+    };
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+
+  const totalPages = Math.ceil(lots.length / pageSize);
+  const pageLots = lots.slice((page - 1) * pageSize, page * pageSize);
+
+  const goToPage = (p: number) => {
+    setPage(p);
+    setTimeout(() => {
+      document
+        .getElementById("lots")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
+  };
+
   return (
     <section
       id="lots"
@@ -46,16 +76,19 @@ export default function GestionLots({ lots, adminView = false }: GestionLotsProp
                 Aucun lot déclaré pour le moment
               </p>
               <span className="block text-sm text-sapin/30">
-                Déclarez votre premier lot pour le mettre à disposition des
-                associations.
+                Déclarez votre premier lot pour le mettre à disposition des associations.
               </span>
             </div>
           </Reveal>
         ) : (
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-5">
-            {lots.map((lot) => (
-              <LotCardGestion key={lot.id_lot} lot={lot} />
-            ))}
+          <div className="flex flex-col gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
+              {pageLots.map((lot) => (
+                <LotCardGestion key={lot.id_lot} lot={lot} />
+              ))}
+            </div>
+
+            <Pagination page={page} totalPages={totalPages} goToPage={goToPage} />
           </div>
         )}
       </div>

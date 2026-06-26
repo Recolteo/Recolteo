@@ -9,6 +9,8 @@ interface InputProps {
   max?: string | number;
   step?: string | number;
   defaultValue?: string | number;
+  value?: string;
+  onChange?: (value: string) => void;
   rows?: number;
 }
 
@@ -23,6 +25,8 @@ export default function Input({
   max,
   step,
   defaultValue,
+  value,
+  onChange,
   rows,
 }: InputProps) {
   const baseClass =
@@ -54,7 +58,10 @@ export default function Input({
           min={min}
           max={max}
           step={step}
-          defaultValue={defaultValue}
+          {...(onChange !== undefined || value !== undefined
+            ? { value: value ?? "", onChange: (e) => onChange?.(e.target.value) }
+            : { defaultValue }
+          )}
           className={baseClass}
         />
       )}
