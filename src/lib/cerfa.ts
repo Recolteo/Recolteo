@@ -110,14 +110,14 @@ export async function generateCerfa(data: CerfaData): Promise<Buffer> {
   form.getTextField("b21").setText(dateCollect);
   form.getTextField("b27").setText(dateCollect);
 
-  const font = await pdf.embedFont(StandardFonts.HelveticaOblique);
-  const page = pdf.getPages()[0];
-  const sigText = commercant.name_entreprise;
-  const sigNote = "Signé électroniquement";
-  page.drawText(sigText, { x: 352, y: 168, size: 9, font, color: rgb(0.04, 0.34, 0.25) });
-  page.drawText(sigNote, { x: 352, y: 156, size: 7, font, color: rgb(0.45, 0.45, 0.45) });
-
   form.flatten();
+
+  const font = await pdf.embedFont(StandardFonts.HelveticaOblique);
+  const page2 = pdf.getPages()[1];
+  const SAPIN = rgb(0.024, 0.341, 0.247);
+
+  page2.drawText(commercant.name_entreprise.substring(0, 30), { x: 350, y: 193, size: 9,   font, color: SAPIN });
+  page2.drawText("Signé électroniquement via Récoltéo",        { x: 350, y: 179, size: 6.5, font, color: rgb(0.45, 0.45, 0.45) });
 
   const pdfBytes = await pdf.save();
   return Buffer.from(pdfBytes);

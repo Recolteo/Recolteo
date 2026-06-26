@@ -2,7 +2,7 @@ export async function geocodeAddress(
   address: string
 ): Promise<{ lat: number; lng: number } | null> {
   try {
-    const base = process.env.BAN_GEOCODE_URL;
+    const base = process.env.NEXT_PUBLIC_BAN_GEOCODE_URL;
     if (!base) return null;
     const url = `${base}?q=${encodeURIComponent(address)}&limit=1`;
     const res = await fetch(url, { cache: "no-store" });

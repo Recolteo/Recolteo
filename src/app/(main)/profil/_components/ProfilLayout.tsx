@@ -2,20 +2,19 @@
 
 import { useState, useTransition } from "react";
 import { UserX, Shield } from "@deemlol/next-icons";
-import { signOut } from "@/src/app/login/actions";
+import { signOut } from "@/src/app/(public)/login/actions";
 import Button from "@/src/components/ui/primitives/Button";
 import TabToggle from "@/src/components/ui/primitives/TabToggle";
-import ValueCard from "@/src/components/ui/cards/ValueCard";
 import Reveal from "@/src/components/animations/Reveal";
 import ProfilHeader from "./ProfilHeader";
 import InfoTab, { type EntityInfo } from "./tabs/InfoTab";
 import DocsTab from "./tabs/DocsTab";
 import BreachTab from "./tabs/BreachTab";
 import CollectesTab from "./tabs/CollectesTab";
-import HistoriqueCommercantTab from "./tabs/HistoriqueCommercantTab";
-import HistoriqueAssociationTab from "./tabs/HistoriqueAssociationTab";
+import HistoriqueMembreTab from "./tabs/HistoriqueMembreTab";
 import HistoriqueAdminTab from "./tabs/HistoriqueAdminTab";
 import DeleteConfirmModal from "./DeleteConfirmModal";
+import ValueCard from "@/src/components/ui/cards/ValueCard";
 
 type Tab = "info" | "docs" | "collectes" | "historique" | "securite";
 
@@ -52,10 +51,7 @@ interface ProfilLayoutProps {
   entityInfo: EntityInfo | null;
 }
 
-export default function ProfilLayout({
-  role,
-  entityInfo,
-}: ProfilLayoutProps) {
+export default function ProfilLayout({ role, entityInfo }: ProfilLayoutProps) {
   const [tab, setTab] = useState<Tab>("info");
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [isPendingSignOut, startSignOut] = useTransition();
@@ -67,7 +63,11 @@ export default function ProfilLayout({
       </Reveal>
 
       <Reveal delay={0.08}>
-        <p className={`leading-relaxed ${role === "admin" ? "text-sapin font-semibold" : "text-sapin/65"}`}>{ROLE_SUBTITLE[role]}</p>
+        <p
+          className={`leading-relaxed ${role === "admin" ? "text-sapin font-semibold" : "text-sapin/65"}`}
+        >
+          {ROLE_SUBTITLE[role]}
+        </p>
       </Reveal>
 
       <Reveal delay={0.16}>
@@ -89,15 +89,11 @@ export default function ProfilLayout({
             {tab === "docs" && <DocsTab role={role} />}
             {tab === "collectes" && role === "commercant" && <CollectesTab />}
             {tab === "securite" && role === "admin" && <BreachTab />}
-            {tab === "historique" && role === "commercant" && (
-              <HistoriqueCommercantTab />
-            )}
-            {tab === "historique" && role === "association" && (
-              <HistoriqueAssociationTab />
-            )}
-            {tab === "historique" && role === "admin" && (
-              <HistoriqueAdminTab />
-            )}
+            {tab === "historique" &&
+              (role === "commercant" || role === "association") && (
+                <HistoriqueMembreTab role={role} />
+              )}
+            {tab === "historique" && role === "admin" && <HistoriqueAdminTab />}
           </div>
         </div>
       </Reveal>

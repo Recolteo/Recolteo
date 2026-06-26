@@ -8,13 +8,14 @@ import ReservationModal from "./_components/ReservationModal";
 import SuccessToast from "./_components/SuccessToast";
 
 export default function Panier() {
-  const { items, removeFromCart, clearCart } = useCart();
+  const { items, removeFromCart } = useCart();
   const [showModal, setShowModal] = useState(false);
   const [showToast, setShowToast] = useState(false);
+
   const totalPrice = items.reduce((sum, item) => sum + item.montant_chiffre, 0);
 
-  function handleSuccess() {
-    clearCart();
+  function handleSuccess(confirmedLotIds: number[]) {
+    confirmedLotIds.forEach((id) => removeFromCart(id));
     setShowModal(false);
     setShowToast(true);
   }

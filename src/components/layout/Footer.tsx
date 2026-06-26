@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import Link from "next/link";
 import Button from "../ui/primitives/Button";
 import Image from "next/image";
@@ -19,7 +20,8 @@ const legalLinks = [
   { label: "Mentions légales", href: "/mentions-legales" },
 ];
 
-export default function Footer() {
+export default async function Footer() {
+  await connection();
   return (
     <footer className=" text-cream mt-auto">
       <div

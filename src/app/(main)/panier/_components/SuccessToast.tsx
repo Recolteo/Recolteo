@@ -7,7 +7,7 @@ export default function SuccessToast({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     const timer = setTimeout(onClose, 5000);
     return () => clearTimeout(timer);
-  }, []);
+  }, [onClose]);
 
   return (
     <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-sapin text-cream rounded-2xl px-5 py-4 shadow-[4px_4px_0_0_#04251c] max-w-sm">

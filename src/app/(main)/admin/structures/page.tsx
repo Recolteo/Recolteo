@@ -1,11 +1,14 @@
 import AdminDecorations from "../_components/AdminDecorations";
 import StructuresFiltre from "./_components/StructuresFiltre";
-import { fetchStructuresData } from "./_utils/fetchStructures";
+import {
+  fetchStructuresData,
+  STRUCTURES_PAGE_SIZE,
+} from "./_utils/fetchStructures";
 
 export default async function StructuresPage({
   searchParams,
 }: {
-  searchParams: Promise<{ filter?: string; page?: string }>;
+  searchParams: Promise<{ filter?: string; page?: string; search?: string }>;
 }) {
   const {
     commercants,
@@ -14,6 +17,7 @@ export default async function StructuresPage({
     associationsTotal,
     filter,
     page,
+    search,
   } = await fetchStructuresData(searchParams);
 
   return (
@@ -27,7 +31,8 @@ export default async function StructuresPage({
           associationsTotal={associationsTotal}
           filter={filter}
           page={page}
-          pageSize={10}
+          pageSize={STRUCTURES_PAGE_SIZE}
+          search={search}
         />
       </div>
     </main>

@@ -28,13 +28,22 @@ export default async function ModifierLotPage({
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
+  const { data: userRow } = await supabase
+    .from("user")
+    .select("id_user")
+    .eq("auth_id", user.id)
+    .maybeSingle();
+
   const [adminResult, commercantResult] = await Promise.all([
     supabase.from("administrateur").select("id_admin").maybeSingle(),
-    supabase
-      .from("commercant")
-      .select("id_commercant")
-      .eq("is_validated", true)
-      .maybeSingle(),
+    userRow
+      ? supabase
+          .from("commercant")
+          .select("id_commercant")
+          .eq("id_user", userRow.id_user)
+          .eq("is_validated", true)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
   ]);
 
   if (!adminResult.data && !commercantResult.data) redirect("/");

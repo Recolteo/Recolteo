@@ -1,4 +1,5 @@
 import Input from "@/src/components/ui/primitives/Input";
+import Dropdown from "@/src/components/ui/primitives/Dropdown";
 import type { Merchant } from "./types";
 
 interface Props {
@@ -28,25 +29,22 @@ export default function CommercantSection({
 
       {isAdmin && (
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="merchant_select" className="text-sm font-semibold text-sapin">
+          <label className="text-sm font-semibold text-sapin">
             Commerçant <span className="text-peach">*</span>
           </label>
-          <select
-            id="merchant_select"
-            value={selectedMerchant?.id ?? ""}
-            onChange={(e) =>
+          <Dropdown
+            value={selectedMerchant ? String(selectedMerchant.id) : ""}
+            placeholder="Choisir un commerçant"
+            options={merchants.map((m) => ({
+              value: String(m.id),
+              label: m.name,
+            }))}
+            onChange={(v) =>
               onMerchantChange(
-                merchants.find((m) => m.id === parseInt(e.target.value, 10)) ?? null,
+                merchants.find((m) => String(m.id) === v) ?? null,
               )
             }
-            className="px-4 py-3 rounded-xl border-2 border-sapin/20 bg-white focus:border-sapin focus:outline-none transition-colors text-sm font-medium text-sapin"
-          >
-            {merchants.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.name}
-              </option>
-            ))}
-          </select>
+          />
         </div>
       )}
 

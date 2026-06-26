@@ -1,36 +1,79 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Récoltéo
 
-## Getting Started
+Mise en relation commerçants / associations pour les dons alimentaires. Déclaration de lots, réservation, validation des collectes, génération CERFA.
 
-First, run the development server:
+## Stack
+
+| Couche | Techno |
+|--------|--------|
+| Framework | Next.js 16 App Router + React 19 |
+| Langage | TypeScript 5 |
+| Styles | Tailwind CSS v4 |
+| Backend / Auth | Supabase (Auth · PostgreSQL · Storage) |
+| Paiement | Stripe (abonnements + webhooks) |
+| Emails | Resend |
+| Animations | Motion (Framer Motion v12) |
+| PDF | pdf-lib |
+| Export Excel | xlsx |
+| Géocodage | API BAN (adresses françaises) |
+| Icons | @deemlol/next-icons |
+| Qualité | ESLint + Husky |
+
+## Install
 
 ```bash
+npm install
+cp .env.example .env.local  # remplir les valeurs (voir VARIABLES.md)
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Structure
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+src/
+├── app/
+│   ├── (main)/       # Routes authentifiées
+│   │   ├── lots/         # Déclaration et gestion des lots
+│   │   ├── panier/       # Réservation des lots
+│   │   ├── profil/       # Profil utilisateur
+│   │   ├── historique-export/  # Historique des exports
+│   │   ├── admin/        # Backoffice (collectes, structures, validation)
+│   │   └── stripe/       # Gestion abonnement
+│   ├── (public)/     # Pages publiques (landing, auth)
+│   └── api/          # Route handlers (cerfa, export, stripe webhooks…)
+├── components/       # Composants UI partagés
+├── lib/              # Logique métier
+│   ├── supabase/         # Clients Supabase (browser / server / admin)
+│   ├── server/           # Helpers server-only (crypto, emails…)
+│   └── data/             # Fetchers de données
+└── asset/            # Images, SVG, template CERFA.pdf
+middleware.ts         # Auth + rate limiting (10 req/15 min/IP)
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Règles importantes
 
-## Learn More
+**Clients Supabase — lequel utiliser :**
+- `createClient()` (server) → Server Components, Actions, API routes — respecte les RLS
+- `createClient()` (browser) → `"use client"` uniquement
+- `createAdminClient()` → Server Actions uniquement, **toujours après vérification des droits**, contourne les RLS
 
-To learn more about Next.js, take a look at the following resources:
+**Pattern Server Action :**
+```
+1. createClient() + getUser()
+2. vérifier les permissions en base (RLS)
+3. createAdminClient() pour l'opération si nécessaire
+4. revalidatePath()
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**Sécurité :**
+- Documents chiffrés AES-256-GCM avant stockage (`lib/server/doc-crypto.ts`)
+- Headers HTTP sécurisés dans `next.config.ts`
+- Husky bloque les commits avec secrets détectés
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Commandes
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run dev    # dev
+npm run build  # prod build
+npm run lint   # ESLint
+```

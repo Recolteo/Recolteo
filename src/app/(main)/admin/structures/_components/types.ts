@@ -1,6 +1,5 @@
 import type { AdminFilter, DocItem } from "../../_components/types";
 
-export type StructureFilter = AdminFilter;
 export type { DocItem };
 
 export interface StructureCommercant {
@@ -12,7 +11,6 @@ export interface StructureCommercant {
   forme_juridique: string;
   adresse: string;
   siret: string;
-  statut_abonnement: boolean;
   created_at: string;
   docs: DocItem[];
 }
@@ -36,7 +34,8 @@ export interface StructuresFiltreProps {
   commercantsTotal: number;
   associations: StructureAssociation[];
   associationsTotal: number;
-  filter: StructureFilter;
+  filter: AdminFilter;
   page: number;
   pageSize: number;
+  search: string;
 }

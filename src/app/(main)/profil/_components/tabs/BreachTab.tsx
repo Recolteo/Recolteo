@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useActionState } from "react";
 import { notifyBreach, type BreachState } from "@/src/lib/breach-notification";
 import Input from "@/src/components/ui/primitives/Input";
-import Select from "@/src/components/ui/primitives/Select";
+import Dropdown from "@/src/components/ui/primitives/Dropdown";
 import Checkbox from "@/src/components/ui/primitives/Checkbox";
 import Button from "@/src/components/ui/primitives/Button";
 
@@ -19,6 +19,7 @@ const SEVERITY_OPTIONS = [
 export default function BreachTab() {
   const [state, action, pending] = useActionState(notifyBreach, INITIAL);
   const [notifyUsers, setNotifyUsers] = useState(false);
+  const [severity, setSeverity] = useState("");
 
   return (
     <div className="flex flex-col gap-5 pt-2">
@@ -52,13 +53,18 @@ export default function BreachTab() {
       )}
 
       <form action={action} className="flex flex-col gap-4">
-        <Select
-          id="severity"
-          name="severity"
-          label="Sévérité"
-          options={SEVERITY_OPTIONS}
-          required
-        />
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-semibold text-sapin">
+            Sévérité <span className="text-peach">*</span>
+          </label>
+          <input type="hidden" name="severity" value={severity} />
+          <Dropdown
+            value={severity}
+            placeholder="Sélectionnez une sévérité…"
+            options={SEVERITY_OPTIONS}
+            onChange={setSeverity}
+          />
+        </div>
 
         <Input
           id="affected_data"

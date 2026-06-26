@@ -18,6 +18,7 @@ const CartContext = createContext<CartContextType>({
 });
 
 const STORAGE_KEY = "recolteo_cart";
+const TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const subscribers = new Set<() => void>();
 
 function subscribe(callback: () => void) {
@@ -37,7 +38,15 @@ function readItems(): Lot[] {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored === _cachedJson) return _cachedItems;
     _cachedJson = stored;
-    _cachedItems = stored ? (JSON.parse(stored) as Lot[]) : [];
+    if (!stored) { _cachedItems = []; return _cachedItems; }
+    const parsed = JSON.parse(stored) as { items: Lot[]; savedAt: number };
+    if (Date.now() - parsed.savedAt > TTL_MS) {
+      localStorage.removeItem(STORAGE_KEY);
+      _cachedJson = null;
+      _cachedItems = [];
+      return _cachedItems;
+    }
+    _cachedItems = parsed.items;
     return _cachedItems;
   } catch {
     return _cachedItems;
@@ -45,7 +54,7 @@ function readItems(): Lot[] {
 }
 
 function writeItems(items: Lot[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ items, savedAt: Date.now() }));
   notify();
 }
 

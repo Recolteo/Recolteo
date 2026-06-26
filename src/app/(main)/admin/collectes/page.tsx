@@ -1,29 +1,10 @@
-import { redirect } from "next/navigation";
-import { createClient } from "@/src/lib/supabase/server";
-import { createAdminClient } from "@/src/lib/supabase/admin";
 import AdminDecorations from "../_components/AdminDecorations";
 import CollecteAdminList from "./_components/CollecteAdminList";
 import Reveal from "@/src/components/animations/Reveal";
+import { getPendingCollects } from "../actions";
 
 export default async function AdminCollectesPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const { data: adminRow } = await supabase
-    .from("administrateur")
-    .select("id_admin")
-    .maybeSingle();
-  if (!adminRow) redirect("/");
-
-  const admin = createAdminClient();
-
-  const [{ count: commercantsCount }, { count: associationsCount }] = await Promise.all([
-    admin.from("collect").select("id_collect", { count: "exact", head: true }).eq("statut", false).not("id_lot", "is", null),
-    admin.from("collect").select("id_collect", { count: "exact", head: true }).eq("statut", false).not("id_association", "is", null),
-  ]);
+  const collects = await getPendingCollects();
 
   return (
     <main className="relative w-full min-h-[calc(100vh-80px)] overflow-hidden">
@@ -33,18 +14,12 @@ export default async function AdminCollectesPage() {
           <Reveal delay={0}>
             <div>
               <h1 className="text-sapin font-black">Collectes en attente</h1>
-              <p className="text-sapin mt-2">
+              <p className="text-sapin/80 mt-2">
                 Validez une collecte si le commerçant ou l'association ne peut pas le faire.
               </p>
             </div>
           </Reveal>
-
-          <Reveal delay={0.1}>
-            <CollecteAdminList
-              commercantsCount={commercantsCount ?? 0}
-              associationsCount={associationsCount ?? 0}
-            />
-          </Reveal>
+          <CollecteAdminList collects={collects} />
         </div>
       </div>
     </main>

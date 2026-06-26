@@ -8,39 +8,60 @@ import LoadingSpinner from "@/src/components/ui/primitives/LoadingSpinner";
 import LotDetailModal from "@/src/components/ui/modals/LotDetailModal";
 import {
   getCommercantCollects,
-  validerCollect,
+  validerCollectsParCode,
   type CollectItem,
 } from "../../actions";
 import { toLot } from "../../utils";
 
-function CollectCard({
-  item,
+type CollectGroup = {
+  code: string;
+  creneau: string;
+  associationName: string;
+  items: CollectItem[];
+};
+
+function groupByCode(collects: CollectItem[]): CollectGroup[] {
+  const map = new Map<string, CollectGroup>();
+  for (const item of collects) {
+    const key = item.code_retrait ?? `no-code-${item.id_lot}`;
+    if (!map.has(key)) {
+      map.set(key, {
+        code: key,
+        creneau: item.creneau,
+        associationName: item.association?.name_entreprise ?? "",
+        items: [],
+      });
+    }
+    map.get(key)!.items.push(item);
+  }
+  return Array.from(map.values());
+}
+
+function CollectGroupCard({
+  group,
   onValidated,
 }: {
-  item: CollectItem;
+  group: CollectGroup;
   onValidated: () => void;
 }) {
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [detailOpen, setDetailOpen] = useState(false);
+  const [detailOpen, setDetailOpen] = useState<CollectItem | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  const creneau = new Date(item.creneau).toLocaleDateString("fr-FR", {
+  const creneau = new Date(group.creneau).toLocaleDateString("fr-FR", {
     weekday: "long",
     day: "numeric",
     month: "long",
     year: "numeric",
   });
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: { preventDefault(): void }) => {
     e.preventDefault();
     setError(null);
-    if (code.length !== 8) {
-      setError("Le code doit contenir 8 chiffres.");
-      return;
-    }
+    if (code.length !== 8) { setError("Le code doit contenir 8 chiffres."); return; }
     startTransition(async () => {
-      const result = await validerCollect(item.id_lot, code);
+      const result = await validerCollectsParCode(code);
       if (result.success) onValidated();
       else setError(result.error);
     });
@@ -49,49 +70,45 @@ function CollectCard({
   return (
     <>
       <div className="border border-sapin/15 rounded-2xl overflow-hidden">
-        <button
-          type="button"
-          onClick={() => setDetailOpen(true)}
-          className="w-full flex items-start gap-3 p-4 border-b border-sapin/10 text-left hover:bg-sapin/3 transition-colors"
-        >
-          <div className="w-10 h-10 rounded-xl bg-lime border border-sapin shadow-[2px_2px_0_0_#06573F] flex items-center justify-center shrink-0">
-            <Package size={20} className="text-sapin" />
-          </div>
-          <div className="min-w-0">
-            <p className="font-black text-sapin leading-tight">
-              {item.lot?.nature ?? "Lot"}
-            </p>
-            <p className="text-xs text-sapin/50 mt-0.5">
-              {item.association?.name_entreprise}
-            </p>
-            <p className="text-xs text-sapin/40">{creneau}</p>
-          </div>
-        </button>
+        <div className="p-4 border-b border-sapin/10 bg-sapin/2 flex flex-col gap-1">
+          <p className="font-black text-sapin leading-tight">{group.associationName}</p>
+          <time className="text-xs text-sapin/40">{creneau}</time>
+        </div>
 
-        <form onSubmit={handleSubmit} className="p-4 flex flex-col gap-3">
-          <p className="text-xs font-semibold text-sapin/50 uppercase tracking-widest">
-            Code de retrait
-          </p>
+        <div className="divide-y divide-sapin/8">
+          {group.items.map((item) => (
+            <button
+              key={item.id_lot}
+              type="button"
+              onClick={() => setDetailOpen(item)}
+              className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-sapin/3 transition-colors"
+            >
+              <div className="w-8 h-8 rounded-lg bg-lime border border-sapin shadow-[2px_2px_0_0_#06573F] flex items-center justify-center shrink-0">
+                <Package size={16} className="text-sapin" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-sapin truncate">{item.lot?.nature ?? "Lot"}</p>
+                <p className="text-xs text-sapin/50">{item.lot?.montant_chiffre} €</p>
+              </div>
+            </button>
+          ))}
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-4 flex flex-col gap-3 border-t border-sapin/10">
+          <p className="text-xs font-semibold text-sapin/50 uppercase tracking-widest">Code de retrait</p>
           <input
             type="text"
             inputMode="numeric"
             maxLength={8}
             value={code}
-            onChange={(e) => {
-              setCode(e.target.value.replace(/\D/g, "").slice(0, 8));
-              setError(null);
-            }}
+            onChange={(e) => { setCode(e.target.value.replace(/\D/g, "").slice(0, 8)); setError(null); }}
             placeholder="• • • • • • • •"
             disabled={isPending}
             className="w-full px-4 py-3 rounded-xl border-2 border-sapin/20 bg-white focus:border-sapin focus:outline-none transition-colors text-center text-2xl font-black tracking-[0.4em] text-sapin placeholder:text-sapin/20 placeholder:text-sm placeholder:tracking-widest"
           />
-          {error && (
-            <p className="text-xs text-peach font-semibold text-center -mt-1">
-              {error}
-            </p>
-          )}
+          {error && <p className="text-xs text-peach font-semibold text-center -mt-1">{error}</p>}
           <Button
-            label={isPending ? "Validation…" : "Valider la collecte"}
+            label={isPending ? "Validation…" : `Valider ${group.items.length > 1 ? `les ${group.items.length} lots` : "le lot"}`}
             type="submit"
             variant="sapin"
             showArrow={false}
@@ -103,9 +120,9 @@ function CollectCard({
 
       {detailOpen && (
         <LotDetailModal
-          lot={toLot(item)}
+          lot={toLot(detailOpen)}
           showCartButton={false}
-          onClose={() => setDetailOpen(false)}
+          onClose={() => setDetailOpen(null)}
         />
       )}
     </>
@@ -122,15 +139,14 @@ export default function CollectesTab() {
       setLoading(false);
     });
 
-  useEffect(() => {
-    reload();
-  }, []);
+  useEffect(() => { reload(); }, []);
 
   const pending = collects.filter((c) => !c.statut);
+  const groups = groupByCode(pending);
 
   if (loading) return <LoadingSpinner />;
 
-  if (!pending.length) {
+  if (!groups.length) {
     return (
       <EmptyState
         icon={<Package size={32} className="text-sapin/30" />}
@@ -143,11 +159,10 @@ export default function CollectesTab() {
   return (
     <div className="flex flex-col gap-3">
       <p className="text-sm text-sapin/60">
-        Demandez le code à l'association lors du passage et saisissez-le pour
-        valider la collecte.
+        Demandez le code à l'association lors du passage et saisissez-le pour valider la collecte.
       </p>
-      {pending.map((c) => (
-        <CollectCard key={c.id_lot} item={c} onValidated={reload} />
+      {groups.map((g) => (
+        <CollectGroupCard key={g.code} group={g} onValidated={reload} />
       ))}
     </div>
   );

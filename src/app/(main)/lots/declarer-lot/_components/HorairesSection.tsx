@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Plus, Trash2 } from "@deemlol/next-icons";
-import Select from "@/src/components/ui/primitives/Select";
+import Dropdown from "@/src/components/ui/primitives/Dropdown";
 import Input from "@/src/components/ui/primitives/Input";
 import type { Horaire } from "@/src/components/ui/cards/LotCard";
 
@@ -69,13 +69,14 @@ export default function HorairesSection({
             key={i}
             className="grid grid-cols-[1fr_1fr_1fr_auto] gap-3 items-end bg-sapin/3 border border-sapin/8 rounded-xl px-4 py-3"
           >
-            <Select
-              id={`horaire_jour_${i}`}
-              label="Jour"
-              options={JOURS_OPTIONS}
-              value={h.jour}
-              onChange={(v) => update(i, "jour", v)}
-            />
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-semibold text-sapin">Jour</label>
+              <Dropdown
+                value={h.jour}
+                options={JOURS_OPTIONS}
+                onChange={(v) => update(i, "jour", v)}
+              />
+            </div>
             <Input
               id={`horaire_debut_${i}`}
               name={`horaire_debut_${i}`}

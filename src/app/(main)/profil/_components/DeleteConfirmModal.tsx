@@ -4,7 +4,7 @@ import { useState, useEffect, useTransition } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { AlertTriangle, X } from "@deemlol/next-icons";
-import { deleteAccount } from "@/src/app/login/actions";
+import { deleteAccount } from "@/src/app/(public)/login/actions";
 import Button from "@/src/components/ui/primitives/Button";
 
 const CONFIRM_WORD = "SUPPRIMER";

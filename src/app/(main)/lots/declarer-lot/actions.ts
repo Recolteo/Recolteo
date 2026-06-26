@@ -1,6 +1,8 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { after } from "next/server";
+import { revalidateTag } from "next/cache";
 import { createClient } from "@/src/lib/supabase/server";
 import { createAdminClient } from "@/src/lib/supabase/admin";
 import { geocodeAddress } from "@/src/lib/geocode";
@@ -32,34 +34,58 @@ export async function importerLots(
   } = await supabase.auth.getUser();
   if (!user) return { error: "Non authentifié." };
 
+  const { data: userRow } = await supabase
+    .from("user")
+    .select("id_user")
+    .eq("auth_id", user.id)
+    .maybeSingle();
+
   const [adminResult, commercantResult] = await Promise.all([
     supabase.from("administrateur").select("id_admin").maybeSingle(),
-    supabase
-      .from("commercant")
-      .select("id_commercant, name_entreprise, adresse")
-      .eq("is_validated", true)
-      .maybeSingle(),
+    userRow
+      ? supabase
+          .from("commercant")
+          .select("id_commercant, name_entreprise, adresse")
+          .eq("id_user", userRow.id_user)
+          .eq("is_validated", true)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
   ]);
 
   if (!adminResult.data && !commercantResult.data) {
     return { error: "Accès refusé." };
   }
 
+  if (rows.length > 200) {
+    return { error: "Maximum 200 lots par import." };
+  }
+
   const id =
     adminResult.data && commercantId
       ? commercantId
       : commercantResult.data?.id_commercant;
-  const name = commercantResult.data?.name_entreprise ?? "";
-  const adresse = commercantResult.data?.adresse ?? "";
 
   if (!id) return { error: "Commerçant introuvable." };
 
   const admin = createAdminClient();
 
-  for (const row of rows) {
-    const { data: inserted, error } = await admin
-      .from("lot")
-      .insert({
+  let name = commercantResult.data?.name_entreprise ?? "";
+  let adresse = commercantResult.data?.adresse ?? "";
+
+  if (adminResult.data && commercantId) {
+    const { data: targetCommercant } = await admin
+      .from("commercant")
+      .select("name_entreprise, adresse")
+      .eq("id_commercant", commercantId)
+      .maybeSingle();
+    name = targetCommercant?.name_entreprise ?? "";
+    adresse = targetCommercant?.adresse ?? "";
+  }
+
+  const { data: inserted, error } = await admin
+    .from("lot")
+    .insert(
+      rows.map((row) => ({
         id_commercant: id,
         name_entreprise: name,
         adresse,
@@ -73,22 +99,29 @@ export async function importerLots(
         montant_lettre: row.montant_lettre,
         horaires: row.horaires,
         statut: true,
-      })
-      .select("id_lot")
-      .single();
+      })),
+    )
+    .select("id_lot, adresse_recup");
 
-    if (error || !inserted) {
-      return { error: `Erreur sur le lot "${row.nature}" : ${error?.message}` };
-    }
-
-    const coords = await geocodeAddress(row.adresse_recup);
-    if (coords) {
-      await admin
-        .from("lot")
-        .update({ lat: coords.lat, lng: coords.lng })
-        .eq("id_lot", inserted.id_lot);
-    }
+  if (error || !inserted?.length) {
+    return { error: "Erreur lors de l'import des lots." };
   }
+
+  revalidateTag("lots", "max");
+
+  after(async () => {
+    const BATCH_SIZE = 10;
+    for (let i = 0; i < inserted.length; i += BATCH_SIZE) {
+      await Promise.all(
+        inserted.slice(i, i + BATCH_SIZE).map(async (lot) => {
+          const coords = await geocodeAddress(lot.adresse_recup);
+          if (coords) {
+            await admin.from("lot").update({ lat: coords.lat, lng: coords.lng }).eq("id_lot", lot.id_lot);
+          }
+        }),
+      );
+    }
+  });
 
   return {};
 }
@@ -103,13 +136,22 @@ export async function declarerLot(
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
+  const { data: userRow } = await supabase
+    .from("user")
+    .select("id_user")
+    .eq("auth_id", user.id)
+    .maybeSingle();
+
   const [adminResult, commercantResult] = await Promise.all([
     supabase.from("administrateur").select("id_admin").maybeSingle(),
-    supabase
-      .from("commercant")
-      .select("id_commercant")
-      .eq("is_validated", true)
-      .maybeSingle(),
+    userRow
+      ? supabase
+          .from("commercant")
+          .select("id_commercant, name_entreprise, adresse")
+          .eq("id_user", userRow.id_user)
+          .eq("is_validated", true)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
   ]);
 
   if (!adminResult.data && !commercantResult.data) {
@@ -136,13 +178,24 @@ export async function declarerLot(
     horaires = [];
   }
 
+  const isAdmin = !!adminResult.data;
+  const idCommercant = isAdmin
+    ? parseInt(formData.get("id_commercant") as string, 10)
+    : commercantResult.data!.id_commercant;
+  const nameEntreprise = isAdmin
+    ? (formData.get("name_entreprise") as string).trim()
+    : (commercantResult.data as { id_commercant: number; name_entreprise: string; adresse: string }).name_entreprise;
+  const adresseEntreprise = isAdmin
+    ? (formData.get("adresse") as string).trim()
+    : (commercantResult.data as { id_commercant: number; name_entreprise: string; adresse: string }).adresse;
+
   const admin = createAdminClient();
   const { data: inserted, error } = await admin
     .from("lot")
     .insert({
-      id_commercant: parseInt(formData.get("id_commercant") as string, 10),
-      name_entreprise: (formData.get("name_entreprise") as string).trim(),
-      adresse: (formData.get("adresse") as string).trim(),
+      id_commercant: idCommercant,
+      name_entreprise: nameEntreprise,
+      adresse: adresseEntreprise,
       adresse_recup,
       instructions:
         ((formData.get("instructions") as string) || "").trim() || null,
@@ -159,16 +212,20 @@ export async function declarerLot(
     .single();
 
   if (error || !inserted) {
-    return { error: `Erreur lors de la déclaration : ${error?.message}` };
+    return { error: "Erreur lors de la déclaration du lot." };
   }
 
-  const coords = await geocodeAddress(adresse_recup);
-  if (coords) {
-    await admin
-      .from("lot")
-      .update({ lat: coords.lat, lng: coords.lng })
-      .eq("id_lot", inserted.id_lot);
-  }
+  revalidateTag("lots", "max");
+
+  after(async () => {
+    const coords = await geocodeAddress(adresse_recup);
+    if (coords) {
+      await admin
+        .from("lot")
+        .update({ lat: coords.lat, lng: coords.lng })
+        .eq("id_lot", inserted.id_lot);
+    }
+  });
 
   redirect("/lots");
 }

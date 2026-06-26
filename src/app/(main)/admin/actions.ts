@@ -1,28 +1,13 @@
 "use server";
 
-import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
+import { after } from "next/server";
 import { Resend } from "resend";
-import { createClient } from "@/src/lib/supabase/server";
 import { createAdminClient } from "@/src/lib/supabase/admin";
 import { generateCerfa } from "@/src/lib/cerfa";
+import { hashPdf, getTimestampToken } from "@/src/lib/timestamp";
+import { assertAdmin } from "./_utils/fetchAdmin";
 const resend = new Resend(process.env.RESEND_API_KEY);
-
-async function assertAdmin() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const { data: adminRow } = await supabase
-    .from("administrateur")
-    .select("id_admin, nom, prenom")
-    .maybeSingle();
-  if (!adminRow) redirect("/");
-
-  return { supabase, adminRow };
-}
 
 async function logAdminAction(
   idAdmin: number,
@@ -131,7 +116,7 @@ export async function validateProfile(formData: FormData) {
   if (type === "commercant") {
     const { data } = await admin
       .from("commercant")
-      .select("name_entreprise")
+      .select("name_entreprise, id_user, email")
       .eq("id_commercant", id)
       .maybeSingle();
     await admin
@@ -139,6 +124,12 @@ export async function validateProfile(formData: FormData) {
       .update({ is_validated: true })
       .eq("id_commercant", id);
     if (data) {
+      const { data: userRow } = await admin
+        .from("user")
+        .select("auth_id")
+        .eq("id_user", data.id_user)
+        .maybeSingle();
+      if (userRow?.auth_id) revalidateTag(`user:${userRow.auth_id}`, "max");
       await logAdminAction(
         adminRow.id_admin,
         adminRow.prenom,
@@ -147,11 +138,35 @@ export async function validateProfile(formData: FormData) {
         "commercant",
         data.name_entreprise,
       );
+      if (data.email) {
+        resend.emails.send({
+          from: "Récoltéo <onboarding@resend.dev>",
+          to: data.email,
+          subject: "Votre profil Récoltéo est validé !",
+          html: `
+            <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
+              <div style="background:#06573f;padding:24px;border-radius:12px 12px 0 0;">
+                <h1 style="color:#c9f242;margin:0;font-size:24px;">Profil validé !</h1>
+              </div>
+              <div style="background:#f9fafb;padding:24px;border-radius:0 0 12px 12px;border:1px solid #e5e7eb;border-top:none;">
+                <p style="color:#374151;">Bonjour <strong>${data.name_entreprise}</strong>,</p>
+                <p style="color:#374151;">Bonne nouvelle ! Votre profil commerçant a été vérifié et validé par l'équipe Récoltéo.</p>
+                <p style="color:#374151;">Vous pouvez dès maintenant vous connecter et déclarer vos premiers lots d'invendus.</p>
+                <div style="margin-top:24px;">
+                  <a href="${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}" style="background:#06573f;color:#c9f242;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;">
+                    Accéder à mon espace →
+                  </a>
+                </div>
+                <p style="margin-top:24px;color:#374151;">L'équipe <strong>Récoltéo</strong></p>
+              </div>
+            </div>`,
+        }).catch(() => {});
+      }
     }
   } else {
     const { data } = await admin
       .from("association")
-      .select("name_entreprise")
+      .select("name_entreprise, id_user, email")
       .eq("id_association", id)
       .maybeSingle();
     await admin
@@ -159,6 +174,12 @@ export async function validateProfile(formData: FormData) {
       .update({ is_validated: true })
       .eq("id_association", id);
     if (data) {
+      const { data: userRow } = await admin
+        .from("user")
+        .select("auth_id")
+        .eq("id_user", data.id_user)
+        .maybeSingle();
+      if (userRow?.auth_id) revalidateTag(`user:${userRow.auth_id}`, "max");
       await logAdminAction(
         adminRow.id_admin,
         adminRow.prenom,
@@ -167,6 +188,30 @@ export async function validateProfile(formData: FormData) {
         "association",
         data.name_entreprise,
       );
+      if (data.email) {
+        resend.emails.send({
+          from: "Récoltéo <onboarding@resend.dev>",
+          to: data.email,
+          subject: "Votre profil Récoltéo est validé !",
+          html: `
+            <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
+              <div style="background:#06573f;padding:24px;border-radius:12px 12px 0 0;">
+                <h1 style="color:#c9f242;margin:0;font-size:24px;">Profil validé !</h1>
+              </div>
+              <div style="background:#f9fafb;padding:24px;border-radius:0 0 12px 12px;border:1px solid #e5e7eb;border-top:none;">
+                <p style="color:#374151;">Bonjour <strong>${data.name_entreprise}</strong>,</p>
+                <p style="color:#374151;">Bonne nouvelle ! Votre profil association a été vérifié et validé par l'équipe Récoltéo.</p>
+                <p style="color:#374151;">Vous pouvez dès maintenant accéder aux lots disponibles et effectuer vos premières réservations.</p>
+                <div style="margin-top:24px;">
+                  <a href="${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}" style="background:#06573f;color:#c9f242;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;">
+                    Accéder à mon espace →
+                  </a>
+                </div>
+                <p style="margin-top:24px;color:#374151;">L'équipe <strong>Récoltéo</strong></p>
+              </div>
+            </div>`,
+        }).catch(() => {});
+      }
     }
   }
 
@@ -239,6 +284,7 @@ export async function rejectProfile(formData: FormData) {
 
 export type CollectAdminItem = {
   id_collect: number;
+  id_lot: number;
   statut: boolean;
   code_retrait: string;
   creneau: string;
@@ -261,127 +307,91 @@ export type CollectAdminItem = {
   } | null;
 };
 
+type CollectJoinRow = {
+  id_collect: number;
+  id_lot: number;
+  statut?: boolean;
+  code_retrait: string | null;
+  creneau: string | null;
+  lot: {
+    nature: string;
+    quantity: number;
+    montant_chiffre: number;
+    adresse_recup: string;
+    commercant: {
+      name_entreprise: string;
+      email: string;
+      adresse: string | null;
+    } | null;
+  } | null;
+  association: {
+    name_entreprise: string;
+    email: string | null;
+    tel: string | null;
+    adresse: string | null;
+  } | null;
+};
+
+function mapCollectJoin(c: CollectJoinRow, statut: boolean): CollectAdminItem {
+  return {
+    id_collect: c.id_collect,
+    id_lot: c.id_lot,
+    statut,
+    code_retrait: c.code_retrait ?? "",
+    creneau: c.creneau ?? "",
+    lot: c.lot
+      ? {
+          nature: c.lot.nature,
+          quantity: c.lot.quantity,
+          montant_chiffre: c.lot.montant_chiffre,
+          adresse_recup: c.lot.adresse_recup,
+        }
+      : null,
+    commercant: c.lot?.commercant ?? null,
+    association: c.association ?? null,
+  };
+}
+
+const COLLECT_JOIN = `
+  id_collect, id_lot, statut, code_retrait, creneau,
+  lot:id_lot(nature, quantity, montant_chiffre, adresse_recup,
+    commercant:id_commercant(name_entreprise, email, adresse)),
+  association:id_association(name_entreprise, email, tel, adresse)
+` as const;
+
+const ADMIN_PAGE_SIZE = 200;
+
 export async function getPendingCollects(): Promise<CollectAdminItem[]> {
   await assertAdmin();
   const admin = createAdminClient();
 
-  const { data: collects } = await admin
+  const { data } = await admin
     .from("collect")
-    .select("id_collect, id_lot, id_association, code_retrait, creneau")
+    .select(COLLECT_JOIN)
     .eq("statut", false)
-    .order("creneau", { ascending: true });
+    .order("creneau", { ascending: true })
+    .limit(ADMIN_PAGE_SIZE);
 
-  if (!collects?.length) return [];
-
-  const lotIds = [...new Set(collects.map((c) => c.id_lot))];
-  const assocIds = [...new Set(collects.map((c) => c.id_association))];
-
-  const { data: lots } = await admin
-    .from("lot")
-    .select("id_lot, id_commercant, nature, quantity, montant_chiffre, adresse_recup")
-    .in("id_lot", lotIds);
-
-  const commercantIds = [...new Set((lots ?? []).map((l) => l.id_commercant))];
-
-  const [{ data: associations }, { data: commercants }] = await Promise.all([
-    admin
-      .from("association")
-      .select("id_association, name_entreprise, email, tel, rna, adresse")
-      .in("id_association", assocIds),
-    admin
-      .from("commercant")
-      .select("id_commercant, name_entreprise, email, adresse")
-      .in("id_commercant", commercantIds),
-  ]);
-
-  const lotMap = new Map((lots ?? []).map((l) => [l.id_lot, l]));
-  const assocMap = new Map(
-    (associations ?? []).map((a) => [a.id_association, a]),
+  return (data ?? []).map((c) =>
+    mapCollectJoin(c as unknown as CollectJoinRow, false),
   );
-  const commercantMap = new Map(
-    (commercants ?? []).map((c) => [c.id_commercant, c]),
-  );
-
-  return collects.map((c) => {
-    const lot = lotMap.get(c.id_lot) ?? null;
-    return {
-      id_collect: c.id_collect,
-      statut: false,
-      id_lot: c.id_lot,
-      code_retrait: c.code_retrait ?? "",
-      creneau: c.creneau ?? "",
-      lot: lot
-        ? {
-          nature: lot.nature,
-          quantity: lot.quantity,
-          montant_chiffre: lot.montant_chiffre,
-          adresse_recup: lot.adresse_recup,
-        }
-        : null,
-      commercant: lot ? (commercantMap.get(lot.id_commercant) ?? null) : null,
-      association: assocMap.get(c.id_association) ?? null,
-    };
-  });
 }
 
-export async function getAllCollectsAdmin(): Promise<CollectAdminItem[]> {
+export async function getAllCollectsAdmin(
+  page = 0,
+): Promise<CollectAdminItem[]> {
   await assertAdmin();
   const admin = createAdminClient();
 
-  const { data: collects } = await admin
+  const { data } = await admin
     .from("collect")
-    .select("id_collect, id_lot, id_association, code_retrait, creneau, statut")
-    .order("creneau", { ascending: false });
+    .select(COLLECT_JOIN)
+    .order("creneau", { ascending: false })
+    .range(page * ADMIN_PAGE_SIZE, (page + 1) * ADMIN_PAGE_SIZE - 1);
 
-  if (!collects?.length) return [];
-
-  const lotIds = [...new Set(collects.map((c) => c.id_lot))];
-  const assocIds = [...new Set(collects.map((c) => c.id_association))];
-
-  const { data: lots } = await admin
-    .from("lot")
-    .select("id_lot, id_commercant, nature, quantity, montant_chiffre, adresse_recup")
-    .in("id_lot", lotIds);
-
-  const commercantIds = [...new Set((lots ?? []).map((l) => l.id_commercant))];
-
-  const [{ data: associations }, { data: commercants }] = await Promise.all([
-    admin
-      .from("association")
-      .select("id_association, name_entreprise, email, tel, rna, adresse")
-      .in("id_association", assocIds),
-    admin
-      .from("commercant")
-      .select("id_commercant, name_entreprise, email, adresse")
-      .in("id_commercant", commercantIds),
-  ]);
-
-  const lotMap = new Map((lots ?? []).map((l) => [l.id_lot, l]));
-  const assocMap = new Map(
-    (associations ?? []).map((a) => [a.id_association, a]),
-  );
-  const commercantMap = new Map(
-    (commercants ?? []).map((c) => [c.id_commercant, c]),
-  );
-
-  return collects.map((c) => {
-    const lot = lotMap.get(c.id_lot) ?? null;
-    return {
-      id_collect: c.id_collect,
-      statut: c.statut ?? false,
-      code_retrait: c.code_retrait ?? "",
-      creneau: c.creneau ?? "",
-      lot: lot
-        ? {
-          nature: lot.nature,
-          quantity: lot.quantity,
-          montant_chiffre: lot.montant_chiffre,
-          adresse_recup: lot.adresse_recup,
-        }
-        : null,
-      commercant: lot ? (commercantMap.get(lot.id_commercant) ?? null) : null,
-      association: assocMap.get(c.id_association) ?? null,
-    };
+  return (data ?? []).map((c) => {
+    const row = c as unknown as CollectJoinRow;
+    return mapCollectJoin(row, row.statut ?? false);
   });
 }
 
@@ -467,10 +477,8 @@ export async function validerCollectAdmin(
     return { success: false, error: "Association introuvable." };
   if (!commercant) return { success: false, error: "Commerçant introuvable." };
 
-  const { count: docCount } = await admin
-    .from("document_fiscal")
-    .select("id_doc_fiscal", { count: "exact", head: true });
-  const numeroSequentiel = String((docCount ?? 0) + 1);
+  const { data: nextNumero } = await admin.rpc("next_cerfa_numero");
+  const numeroSequentiel = nextNumero as string;
 
   const { error: updateError } = await admin
     .from("collect")
@@ -488,104 +496,113 @@ export async function validerCollectAdmin(
     signed_at: new Date().toISOString(),
   });
 
-  const dateCollect = formatDate(collect.date);
-  let pdfBuffer: Buffer | null = null;
-  try {
-    pdfBuffer = await generateCerfa({
-      numOrdre: numeroSequentiel,
-      association: {
-        name_entreprise: association.name_entreprise,
-        rna: association.rna ?? "",
-        adresse: association.adresse ?? "",
-        code_postal: association.code_postal ?? "",
-      },
-      commercant: {
-        name_entreprise: commercant.name_entreprise,
-        forme_juridique: commercant.forme_juridique ?? "",
-        siret: commercant.siret ?? "",
-        adresse: commercant.adresse ?? "",
-        code_postal: commercant.code_postal ?? "",
-      },
-      lot: {
-        nature: lot.nature,
-        quantity: lot.quantity,
-        montant_chiffre: lot.montant_chiffre,
-        montant_lettre: lot.montant_lettre ?? "",
-      },
-      dateCollect,
-    });
-  } catch (e) {
-    console.error("Erreur génération CERFA :", e);
-  }
-
-  if (pdfBuffer) {
-    const storagePath = `${commercant.id_commercant}/${collect.id_collect}.pdf`;
-    const { error: uploadError } = await admin.storage
-      .from("cerfas")
-      .upload(storagePath, pdfBuffer, {
-        contentType: "application/pdf",
-        upsert: true,
-      });
-    if (!uploadError) {
-      await admin
-        .from("document_fiscal")
-        .update({ pdf: storagePath })
-        .eq("id_collect", collect.id_collect);
-    }
-  }
-
   const creneauLabel = formatCreneau(collect.creneau);
+  const dateCollect = formatDate(collect.date);
 
-  await Promise.all([
-    resend.emails.send({
-      from: "Récoltéo <onboarding@resend.dev>",
-      to: commercant.email,
-      subject: `Collecte validée — CERFA fiscal n°${numeroSequentiel} — Récoltéo`,
-      html: `
-        <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
-          <div style="background:#06573f;padding:24px;border-radius:12px 12px 0 0;">
-            <h1 style="color:#c9f242;margin:0;font-size:24px;">Collecte validée !</h1>
-          </div>
-          <div style="background:#f9fafb;padding:24px;border-radius:0 0 12px 12px;border:1px solid #e5e7eb;border-top:none;">
-            <p style="color:#374151;">Bonjour <strong>${commercant.name_entreprise}</strong>,</p>
-            <p style="color:#374151;">La collecte avec l'association <strong>${association.name_entreprise}</strong> a bien été validée par l'équipe Récoltéo.</p>
-            <div style="background:rgba(6,87,63,0.08);border:1px solid rgba(6,87,63,0.2);border-radius:8px;padding:16px;margin:16px 0;">
-              <p style="margin:0;font-weight:bold;color:#06573f;">Lot concerné</p>
-              <p style="margin:8px 0 0;color:#374151;">${lot.nature} — Valeur : ${lot.montant_chiffre} €</p>
-            </div>
-            <p style="color:#374151;">Votre reçu fiscal CERFA 16216*03 est joint à cet email.</p>
-            <p style="margin-top:24px;color:#374151;">L'équipe <strong>Récoltéo</strong></p>
-          </div>
-        </div>`,
-      ...(pdfBuffer
-        ? {
-          attachments: [
-            { filename: `cerfa_${numeroSequentiel}.pdf`, content: pdfBuffer },
-          ],
-        }
-        : {}),
-    }),
-    association.email
-      ? resend.emails.send({
+  after(async () => {
+    let pdfBuffer: Buffer | null = null;
+    try {
+      pdfBuffer = await generateCerfa({
+        numOrdre: numeroSequentiel,
+        association: {
+          name_entreprise: association.name_entreprise,
+          rna: association.rna ?? "",
+          adresse: association.adresse ?? "",
+          code_postal: association.code_postal ?? "",
+        },
+        commercant: {
+          name_entreprise: commercant.name_entreprise,
+          forme_juridique: commercant.forme_juridique ?? "",
+          siret: commercant.siret ?? "",
+          adresse: commercant.adresse ?? "",
+          code_postal: commercant.code_postal ?? "",
+        },
+        lot: {
+          nature: lot.nature,
+          quantity: lot.quantity,
+          montant_chiffre: lot.montant_chiffre,
+          montant_lettre: lot.montant_lettre ?? "",
+        },
+        dateCollect,
+      });
+    } catch (e) {
+      console.error("Erreur génération CERFA :", e);
+    }
+
+    if (pdfBuffer) {
+      const pdfHash = hashPdf(pdfBuffer);
+      const storagePath = `${commercant.id_commercant}/${collect.id_collect}.pdf`;
+      const { error: uploadError } = await admin.storage
+        .from("cerfas")
+        .upload(storagePath, pdfBuffer, {
+          contentType: "application/pdf",
+          upsert: true,
+        });
+      if (!uploadError) {
+        await admin
+          .from("document_fiscal")
+          .update({ pdf: storagePath, pdf_hash: pdfHash })
+          .eq("id_collect", collect.id_collect);
+        const token = await getTimestampToken(pdfHash);
+        if (token)
+          await admin.from("document_fiscal").update({ timestamp_token: token }).eq("id_collect", collect.id_collect);
+      }
+    }
+
+    await Promise.all([
+      resend.emails.send({
         from: "Récoltéo <onboarding@resend.dev>",
-        to: association.email,
-        subject: `Collecte confirmée par ${commercant.name_entreprise} — Récoltéo`,
+        to: commercant.email,
+        subject: `Collecte validée — CERFA fiscal n°${numeroSequentiel} — Récoltéo`,
         html: `
-            <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
-              <div style="background:#06573f;padding:24px;border-radius:12px 12px 0 0;">
-                <h1 style="color:#c9f242;margin:0;font-size:24px;">Collecte confirmée</h1>
+          <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
+            <div style="background:#06573f;padding:24px;border-radius:12px 12px 0 0;">
+              <h1 style="color:#c9f242;margin:0;font-size:24px;">Collecte validée !</h1>
+            </div>
+            <div style="background:#f9fafb;padding:24px;border-radius:0 0 12px 12px;border:1px solid #e5e7eb;border-top:none;">
+              <p style="color:#374151;">Bonjour <strong>${commercant.name_entreprise}</strong>,</p>
+              <p style="color:#374151;">La collecte avec l'association <strong>${association.name_entreprise}</strong> a bien été validée par l'équipe Récoltéo.</p>
+              <div style="background:rgba(6,87,63,0.08);border:1px solid rgba(6,87,63,0.2);border-radius:8px;padding:16px;margin:16px 0;">
+                <p style="margin:0;font-weight:bold;color:#06573f;">Lot concerné</p>
+                <p style="margin:8px 0 0;color:#374151;">${lot.nature} — Valeur : ${lot.montant_chiffre} €</p>
               </div>
-              <div style="background:#f9fafb;padding:24px;border-radius:0 0 12px 12px;border:1px solid #e5e7eb;border-top:none;">
-                <p style="color:#374151;">Bonjour <strong>${association.name_entreprise}</strong>,</p>
-                <p style="color:#374151;">Le commerçant <strong>${commercant.name_entreprise}</strong> a validé la récupération du lot <strong>${lot.nature}</strong>.</p>
-                <p style="color:#374151;">Créneau : ${creneauLabel}</p>
-                <p style="color:#374151;">La valeur du don (<strong>${lot.montant_chiffre} €</strong>) sera prise en compte dans votre cagnotte.</p>
-                <p style="margin-top:24px;color:#374151;">L'équipe <strong>Récoltéo</strong></p>
-              </div>
-            </div>`,
-      })
-      : Promise.resolve(),
-  ]);
+              <p style="color:#374151;">Votre reçu fiscal CERFA 16216*03 est joint à cet email.</p>
+              <p style="margin-top:24px;color:#374151;">L'équipe <strong>Récoltéo</strong></p>
+            </div>
+          </div>`,
+        ...(pdfBuffer
+          ? {
+              attachments: [
+                {
+                  filename: `cerfa_${numeroSequentiel}.pdf`,
+                  content: pdfBuffer,
+                },
+              ],
+            }
+          : {}),
+      }),
+      association.email
+        ? resend.emails.send({
+            from: "Récoltéo <onboarding@resend.dev>",
+            to: association.email,
+            subject: `Collecte confirmée par ${commercant.name_entreprise} — Récoltéo`,
+            html: `
+              <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
+                <div style="background:#06573f;padding:24px;border-radius:12px 12px 0 0;">
+                  <h1 style="color:#c9f242;margin:0;font-size:24px;">Collecte confirmée</h1>
+                </div>
+                <div style="background:#f9fafb;padding:24px;border-radius:0 0 12px 12px;border:1px solid #e5e7eb;border-top:none;">
+                  <p style="color:#374151;">Bonjour <strong>${association.name_entreprise}</strong>,</p>
+                  <p style="color:#374151;">Le commerçant <strong>${commercant.name_entreprise}</strong> a validé la récupération du lot <strong>${lot.nature}</strong>.</p>
+                  <p style="color:#374151;">Créneau : ${creneauLabel}</p>
+                  <p style="color:#374151;">La valeur du don (<strong>${lot.montant_chiffre} €</strong>) sera prise en compte dans votre cagnotte.</p>
+                  <p style="margin-top:24px;color:#374151;">L'équipe <strong>Récoltéo</strong></p>
+                </div>
+              </div>`,
+          })
+        : Promise.resolve(),
+    ]);
+  });
 
   await logAdminAction(
     adminRow.id_admin,

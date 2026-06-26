@@ -1,4 +1,5 @@
 import Input from "@/src/components/ui/primitives/Input";
+import Dropdown from "@/src/components/ui/primitives/Dropdown";
 
 const CATEGORY_OPTIONS = [
   "Invendus alimentaires",
@@ -10,14 +11,23 @@ const CATEGORY_OPTIONS = [
   "Dons de vêtements",
   "Mobilier",
   "Autres ressources",
+  "Autre",
 ];
+
+const CATEGORY_DROPDOWN_OPTIONS = CATEGORY_OPTIONS.map((c) => ({
+  value: c === "Autre" ? "autre" : c,
+  label: c,
+}));
 
 interface Props {
   categoryValue: string;
   onCategoryChange: (value: string) => void;
 }
 
-export default function LotDetailsSection({ categoryValue, onCategoryChange }: Props) {
+export default function LotDetailsSection({
+  categoryValue,
+  onCategoryChange,
+}: Props) {
   const isAutre = categoryValue === "autre";
 
   return (
@@ -28,27 +38,16 @@ export default function LotDetailsSection({ categoryValue, onCategoryChange }: P
       <div className="grid sm:grid-cols-2 gap-4">
         <div className={isAutre ? "" : "sm:col-span-2"}>
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="category_select" className="text-sm font-semibold text-sapin">
+            <label className="text-sm font-semibold text-sapin">
               Catégorie <span className="text-peach">*</span>
             </label>
-            <select
-              id="category_select"
-              name="category_select"
-              required
+            <input type="hidden" name="category_select" value={categoryValue} />
+            <Dropdown
               value={categoryValue}
-              onChange={(e) => onCategoryChange(e.target.value)}
-              className="px-4 py-3 rounded-xl border-2 border-sapin/20 bg-white focus:border-sapin focus:outline-none transition-colors text-sm font-medium text-sapin"
-            >
-              <option value="" disabled>
-                Choisir une catégorie
-              </option>
-              {CATEGORY_OPTIONS.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-              <option value="autre">Autre</option>
-            </select>
+              placeholder="Choisir une catégorie"
+              options={CATEGORY_DROPDOWN_OPTIONS}
+              onChange={onCategoryChange}
+            />
           </div>
         </div>
 

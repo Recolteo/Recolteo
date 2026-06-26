@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -5,6 +6,7 @@ import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
 import CookieManager from "../components/ui/cookie/CookieManager";
 import { createClient } from "@/src/lib/supabase/server";
+import { getUserProfile } from "@/src/lib/user-profile";
 import { CartProvider } from "@/src/lib/cart-context";
 
 const geistSans = Geist({
@@ -23,66 +25,37 @@ export const metadata: Metadata = {
     "Connecte commerçants et associations pour une solidarité simple et rapide.",
 };
 
-export default async function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+async function HeaderWithAuth() {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  if (!user) return <Header />;
 
-  let userInfo:
-    | { nom: string; role: "commercant" | "association" | "admin" }
-    | undefined;
+  const { data: adminRow } = await supabase
+    .from("administrateur")
+    .select("nom, prenom")
+    .maybeSingle();
 
-  if (user) {
-    const { data: adminRow } = await supabase
-      .from("administrateur")
-      .select("nom, prenom")
-      .maybeSingle();
-
-    if (adminRow) {
-      userInfo = { nom: `${adminRow.prenom} ${adminRow.nom}`, role: "admin" };
-    } else {
-      const { data: userRow } = await supabase
-        .from("user")
-        .select("id_user, nom")
-        .eq("auth_id", user.id)
-        .maybeSingle();
-
-      if (userRow) {
-        const [{ data: commercant }, { data: association }] = await Promise.all(
-          [
-            supabase
-              .from("commercant")
-              .select("name_entreprise")
-              .eq("id_user", userRow.id_user)
-              .maybeSingle(),
-            supabase
-              .from("association")
-              .select("name_entreprise")
-              .eq("id_user", userRow.id_user)
-              .maybeSingle(),
-          ],
-        );
-
-        if (commercant) {
-          userInfo = {
-            nom: userRow.nom ?? commercant.name_entreprise,
-            role: "commercant",
-          };
-        } else if (association) {
-          userInfo = {
-            nom: userRow.nom ?? association.name_entreprise,
-            role: "association",
-          };
-        }
-      }
-    }
+  if (adminRow) {
+    return (
+      <Header
+        user={{ nom: `${adminRow.prenom} ${adminRow.nom}`, role: "admin" }}
+      />
+    );
   }
 
+  const profile = await getUserProfile(user.id);
+  if (!profile) return <Header />;
+
+  return <Header user={{ nom: profile.nom, role: profile.role }} />;
+}
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
     <html
       lang="fr"
@@ -90,9 +63,13 @@ export default async function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-cream">
         <CartProvider>
-          <Header user={userInfo} />
+          <Suspense fallback={<Header />}>
+            <HeaderWithAuth />
+          </Suspense>
           {children}
-          <Footer />
+          <Suspense fallback={null}>
+            <Footer />
+          </Suspense>
           <CookieManager />
         </CartProvider>
       </body>

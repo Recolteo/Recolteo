@@ -1,3 +1,6 @@
+import AbonnementSection from "../AbonnementSection";
+import PaiementCommercantSection from "./PaiementCommercantTab";
+
 type EntityInfo =
   | {
       role: "commercant";
@@ -73,6 +76,7 @@ export default function InfoTab({ entityInfo }: { entityInfo: EntityInfo | null 
         <InfoRow label="SIRET" value={entityInfo.siret} />
         <InfoRow label="Activité" value={entityInfo.type_activity} />
         <InfoRow label="Forme juridique" value={entityInfo.forme_juridique} />
+        <PaiementCommercantSection />
       </div>
     );
 
@@ -86,6 +90,7 @@ export default function InfoTab({ entityInfo }: { entityInfo: EntityInfo | null 
         label="Cagnotte"
         value={entityInfo.cagnotte.toLocaleString("fr-FR", { style: "currency", currency: "EUR" })}
       />
+      <AbonnementSection />
     </div>
   );
 }

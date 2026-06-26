@@ -37,4 +37,5 @@ export interface AdminFiltreProps {
   pageSize: number;
   adminPrenom: string;
   adminNom: string;
+  search: string;
 }

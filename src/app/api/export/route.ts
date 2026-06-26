@@ -20,28 +20,21 @@ export async function GET(_req: NextRequest) {
 
   const [{ data: commercant }, { data: association }] = await Promise.all([
     admin.from("commercant")
-      .select("name_entreprise, tel, adresse, siret, forme_juridique, type_activity, is_validated")
+      .select("id_commercant, name_entreprise, tel, adresse, siret, forme_juridique, type_activity, is_validated")
       .eq("id_user", userRow.id_user)
       .maybeSingle(),
     admin.from("association")
-      .select("name_entreprise, tel, adresse, rna, type_asso, is_validated")
+      .select("id_association, name_entreprise, tel, adresse, rna, type_asso, is_validated")
       .eq("id_user", userRow.id_user)
       .maybeSingle(),
   ]);
 
-  const commercantRow = commercant
-    ? (await admin.from("commercant").select("id_commercant").eq("id_user", userRow.id_user).maybeSingle()).data
-    : null;
-  const assoRow = association
-    ? (await admin.from("association").select("id_association").eq("id_user", userRow.id_user).maybeSingle()).data
-    : null;
-
   const [{ data: lots }, { data: collects }] = await Promise.all([
-    commercantRow
-      ? admin.from("lot").select("nature, category, quantity, montant_chiffre, montant_lettre, adresse_recup, date_mise_en_ligne, statut").eq("id_commercant", commercantRow.id_commercant)
+    commercant?.id_commercant
+      ? admin.from("lot").select("nature, category, quantity, montant_chiffre, montant_lettre, adresse_recup, created_at, statut").eq("id_commercant", commercant.id_commercant)
       : Promise.resolve({ data: [] }),
-    assoRow
-      ? admin.from("collect").select("date, creneau, statut").eq("id_association", assoRow.id_association)
+    association?.id_association
+      ? admin.from("collect").select("date, creneau, statut").eq("id_association", association.id_association)
       : Promise.resolve({ data: [] }),
   ]);
 

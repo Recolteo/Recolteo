@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { cacheTag, cacheLife } from "next/cache";
 import { createClient } from "@/src/lib/supabase/server";
 import { createAdminClient } from "@/src/lib/supabase/admin";
 import { geocodeAddress } from "@/src/lib/geocode";
@@ -9,9 +10,26 @@ const LOT_FIELDS =
 
 export type LotPageData =
   | { view: "docs-gate" }
+  | { view: "subscription-gate" }
   | { view: "commercant"; lots: Lot[] }
   | { view: "admin"; lots: Lot[] }
   | { view: "association"; lots: Lot[]; assoCoords: { lat: number; lng: number } | null };
+
+async function getAvailableLots(): Promise<Lot[]> {
+  "use cache";
+  cacheTag("lots");
+  cacheLife({ stale: 30, revalidate: 60 });
+  const today = new Date().toISOString().split("T")[0];
+  const admin = createAdminClient();
+  const { data } = await admin
+    .from("lot")
+    .select(LOT_FIELDS)
+    .eq("statut", true)
+    .or(`dlc.is.null,dlc.gte.${today}`)
+    .order("created_at", { ascending: false })
+    .limit(500);
+  return (data ?? []) as Lot[];
+}
 
 export async function fetchLotsData(): Promise<LotPageData> {
   const supabase = await createClient();
@@ -60,12 +78,7 @@ export async function fetchLotsData(): Promise<LotPageData> {
     return { view: "commercant", lots: (lotsData ?? []) as Lot[] };
   }
 
-  const { data: lotsData } = await supabase
-    .from("lot")
-    .select(LOT_FIELDS)
-    .eq("statut", true)
-    .order("created_at", { ascending: false });
-  const lots = (lotsData ?? []) as Lot[];
+  const lots = await getAvailableLots();
 
   if (isAdmin) return { view: "admin", lots };
 
@@ -87,6 +100,16 @@ export async function fetchLotsData(): Promise<LotPageData> {
   if (!docRow?.rib_validated || !docRow?.kbis_validated || !docRow?.piece_identite_validated)
     return { view: "docs-gate" };
 
+  const { data: subRow } = await adminClient
+    .from("association")
+    .select("stripe_subscription_status")
+    .eq("id_association", assoRow.id_association)
+    .maybeSingle();
+
+  const subStatus = subRow?.stripe_subscription_status ?? "none";
+  if (subStatus !== "active" && subStatus !== "trialing")
+    return { view: "subscription-gate" };
+
   let assoCoords: { lat: number; lng: number } | null = null;
   if (assoRow.lat && assoRow.lng) {
     assoCoords = { lat: assoRow.lat, lng: assoRow.lng };
@@ -94,10 +117,16 @@ export async function fetchLotsData(): Promise<LotPageData> {
     const coords = await geocodeAddress(assoRow.adresse);
     if (coords) {
       assoCoords = coords;
-      await adminClient
-        .from("association")
-        .update({ lat: coords.lat, lng: coords.lng })
-        .eq("id_user", userRow.id_user);
+      void (async () => {
+        try {
+          await adminClient
+            .from("association")
+            .update({ lat: coords.lat, lng: coords.lng })
+            .eq("id_user", userRow.id_user);
+        } catch (err) {
+          console.error("[geocode] Échec mise en cache coordonnées:", err instanceof Error ? err.message : String(err));
+        }
+      })();
     }
   }
 

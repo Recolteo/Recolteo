@@ -8,7 +8,7 @@ import {
 } from "@/src/app/(public)/contact/actions";
 import { Check } from "@deemlol/next-icons";
 import Input from "@/src/components/ui/primitives/Input";
-import Select from "@/src/components/ui/primitives/Select";
+import Dropdown from "@/src/components/ui/primitives/Dropdown";
 import Button from "@/src/components/ui/primitives/Button";
 import Reveal from "@/src/components/animations/Reveal";
 
@@ -19,6 +19,7 @@ export default function ContactForm() {
   );
   const [rgpdChecked, setRgpdChecked] = useState(false);
   const [rgpdError, setRgpdError] = useState(false);
+  const [typeDemande, setTypeDemande] = useState("");
 
   if (state.success) {
     return (
@@ -87,20 +88,24 @@ export default function ContactForm() {
               />
             </div>
 
-            <Select
-              id="type_demande"
-              name="type_demande"
-              label="Type de demande"
-              required
-              placeholder="Sélectionnez un type…"
-              options={[
-                { value: "technique", label: "Problème technique" },
-                { value: "facturation", label: "Facturation" },
-                { value: "compte", label: "Mon compte" },
-                { value: "partenariat", label: "Partenariat" },
-                { value: "autre", label: "Autre" },
-              ]}
-            />
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-semibold text-sapin">
+                Type de demande <span className="text-peach">*</span>
+              </label>
+              <input type="hidden" name="type_demande" value={typeDemande} />
+              <Dropdown
+                value={typeDemande}
+                placeholder="Sélectionnez un type…"
+                options={[
+                  { value: "technique", label: "Problème technique" },
+                  { value: "facturation", label: "Facturation" },
+                  { value: "compte", label: "Mon compte" },
+                  { value: "partenariat", label: "Partenariat" },
+                  { value: "autre", label: "Autre" },
+                ]}
+                onChange={setTypeDemande}
+              />
+            </div>
 
             <Input
               id="sujet"

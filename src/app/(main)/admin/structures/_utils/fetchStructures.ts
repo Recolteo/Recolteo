@@ -1,80 +1,68 @@
-import { redirect } from "next/navigation";
-import { createClient } from "@/src/lib/supabase/server";
 import { createAdminClient } from "@/src/lib/supabase/admin";
+import { assertAdmin, VALID_FILTERS } from "../../_utils/fetchAdmin";
 import { buildDocs, type RawDoc } from "./buildDocs";
-import type {
-  StructureFilter,
-  StructureCommercant,
-  StructureAssociation,
-} from "../_components/types";
-
-export const VALID_FILTERS: StructureFilter[] = ["all", "commercant", "association"];
+import type { AdminFilter } from "../../_components/types";
+import type { StructureCommercant, StructureAssociation } from "../_components/types";
+export const STRUCTURES_PAGE_SIZE = 10;
 
 export type StructuresData = {
   commercants: StructureCommercant[];
   commercantsTotal: number;
   associations: StructureAssociation[];
   associationsTotal: number;
-  filter: StructureFilter;
+  filter: AdminFilter;
   page: number;
+  search: string;
 };
 
 export async function fetchStructuresData(
-  searchParams: Promise<{ filter?: string; page?: string }>,
+  searchParams: Promise<{ filter?: string; page?: string; search?: string }>,
 ): Promise<StructuresData> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const { data: adminRow } = await supabase
-    .from("administrateur")
-    .select("id_admin")
-    .maybeSingle();
-  if (!adminRow) redirect("/");
-
+  await assertAdmin();
   const admin = createAdminClient();
 
   const params = await searchParams;
-  const filter: StructureFilter = VALID_FILTERS.includes(
-    params.filter as StructureFilter,
+  const filter: AdminFilter = VALID_FILTERS.includes(
+    params.filter as AdminFilter,
   )
-    ? (params.filter as StructureFilter)
+    ? (params.filter as AdminFilter)
     : "all";
-  const page = Math.max(1, parseInt(params.page ?? "1", 10));
-  const from = (page - 1) * 10;
-  const to = from + 10 - 1;
+  const page = Math.max(1, parseInt(params.page ?? "1", 10) || 1);
+  const search = params.search?.trim() ?? "";
+  const from = (page - 1) * STRUCTURES_PAGE_SIZE;
+  const to = from + STRUCTURES_PAGE_SIZE - 1;
+
+  let commercantFullQ = admin
+    .from("commercant")
+    .select("id_commercant, name_entreprise, email, tel, type_activity, forme_juridique, adresse, siret, created_at", { count: "exact" })
+    .eq("is_validated", true);
+  if (search) commercantFullQ = commercantFullQ.ilike("name_entreprise", `%${search}%`);
+
+  let commercantCountQ = admin
+    .from("commercant")
+    .select("id_commercant", { count: "exact", head: true })
+    .eq("is_validated", true);
+  if (search) commercantCountQ = commercantCountQ.ilike("name_entreprise", `%${search}%`);
+
+  let associationFullQ = admin
+    .from("association")
+    .select("id_association, name_entreprise, email, tel, type_asso, adresse, rna, statut_abonnement, created_at, cagnotte_reset_at", { count: "exact" })
+    .eq("is_validated", true);
+  if (search) associationFullQ = associationFullQ.ilike("name_entreprise", `%${search}%`);
+
+  let associationCountQ = admin
+    .from("association")
+    .select("id_association", { count: "exact", head: true })
+    .eq("is_validated", true);
+  if (search) associationCountQ = associationCountQ.ilike("name_entreprise", `%${search}%`);
 
   const [commercantsResult, associationsResult] = await Promise.all([
     filter !== "association"
-      ? admin
-        .from("commercant")
-        .select(
-          "id_commercant, name_entreprise, email, tel, type_activity, forme_juridique, adresse, siret, statut_abonnement, created_at",
-          { count: "exact" },
-        )
-        .eq("is_validated", true)
-        .range(from, to)
-        .order("created_at", { ascending: false })
-      : admin
-        .from("commercant")
-        .select("id_commercant", { count: "exact", head: true })
-        .eq("is_validated", true),
+      ? commercantFullQ.range(from, to).order("created_at", { ascending: false })
+      : commercantCountQ,
     filter !== "commercant"
-      ? admin
-        .from("association")
-        .select(
-          "id_association, name_entreprise, email, tel, type_asso, adresse, rna, statut_abonnement, created_at, cagnotte_reset_at",
-          { count: "exact" },
-        )
-        .eq("is_validated", true)
-        .range(from, to)
-        .order("created_at", { ascending: false })
-      : admin
-        .from("association")
-        .select("id_association", { count: "exact", head: true })
-        .eq("is_validated", true),
+      ? associationFullQ.range(from, to).order("created_at", { ascending: false })
+      : associationCountQ,
   ]);
 
   const commercantList =
@@ -152,5 +140,6 @@ export async function fetchStructuresData(
     associationsTotal: associationsResult.count ?? 0,
     filter,
     page,
+    search,
   };
 }

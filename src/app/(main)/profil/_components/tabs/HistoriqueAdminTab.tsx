@@ -7,8 +7,13 @@ import EmptyState from "@/src/components/ui/primitives/EmptyState";
 import Pagination from "@/src/components/ui/primitives/Pagination";
 import LoadingSpinner from "@/src/components/ui/primitives/LoadingSpinner";
 import SlideIn from "@/src/components/animations/SlideIn";
+import Button from "@/src/components/ui/primitives/Button";
+import { DownloadAction } from "@/src/components/ui/docs/DocAction";
 import CollecteAdminCard from "@/src/app/(main)/admin/collectes/_components/CollecteAdminCard";
-import { getAllCollectsAdmin, type CollectAdminItem } from "@/src/app/(main)/admin/actions";
+import {
+  getAllCollectsAdmin,
+  type CollectAdminItem,
+} from "@/src/app/(main)/admin/actions";
 
 const PAGE_SIZE = 10;
 
@@ -31,33 +36,38 @@ function HistoriqueAdminCard({
 
   return (
     <SlideIn delay={index * 0.1}>
-      <button
-        onClick={onOpen}
-        className="w-full flex items-center gap-4 py-4 border-b border-sapin/8 last:border-0 text-left hover:bg-sapin/3 transition-colors rounded-xl px-1"
-      >
-        <div className="w-11 h-11 rounded-xl bg-lime border border-sapin shadow-[2px_2px_0_0_#06573F] flex items-center justify-center shrink-0">
+      <div className="flex items-center gap-4 py-4 border-b border-sapin/8 last:border-0">
+        <button
+          onClick={onOpen}
+          className="w-11 h-11 rounded-xl bg-lime border border-sapin shadow-[2px_2px_0_0_#06573F] flex items-center justify-center shrink-0 hover:bg-lime/70 transition-colors"
+        >
           <Package size={20} className="text-sapin" />
-        </div>
+        </button>
 
-        <div className="flex-1 min-w-0">
+        <button
+          onClick={onOpen}
+          className="flex-1 min-w-0 text-left hover:bg-sapin/3 transition-colors rounded-xl px-1"
+        >
           <p className="font-black text-sapin leading-tight truncate">
             {item.lot?.nature ?? "Lot"}
           </p>
           <p className="text-xs text-sapin/50 mt-0.5 truncate">
-            {item.commercant?.name_entreprise} → {item.association?.name_entreprise}
+            {item.commercant?.name_entreprise} →{" "}
+            {item.association?.name_entreprise}
           </p>
           <p className="text-xs text-sapin/40">{date}</p>
-        </div>
+        </button>
 
-        <span
-          className={`shrink-0 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase border ${item.statut
-            ? "bg-lime/30 text-sapin border-lime/50"
-            : "bg-sapin/8 text-sapin/50 border-sapin/15"
-            }`}
-        >
-          {item.statut ? "Validée" : "En attente"}
-        </span>
-      </button>
+        <div className="shrink-0">
+          {item.statut ? (
+            <DownloadAction href={`/api/collect-bundle/${item.id_lot}`} />
+          ) : (
+            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase border bg-sapin/8 text-sapin/50 border-sapin/15">
+              En attente
+            </span>
+          )}
+        </div>
+      </div>
     </SlideIn>
   );
 }
@@ -91,11 +101,30 @@ export default function HistoriqueAdminTab() {
     );
   }
 
+  const hasValidated = collects.some((c) => c.statut);
   const totalPages = Math.ceil(collects.length / PAGE_SIZE);
   const paged = collects.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <>
+      {hasValidated && (
+        <div className="mb-4">
+          <Button
+            label="Télécharger tout l'historique"
+            variant="sapin-outline"
+            showArrow={false}
+            className="w-full"
+            onClick={() => {
+              const a = document.createElement("a");
+              a.href = "/api/tableau-recap-dons";
+              document.body.appendChild(a);
+              a.click();
+              a.remove();
+            }}
+          />
+        </div>
+      )}
+
       <div>
         {paged.map((c, i) => (
           <HistoriqueAdminCard
